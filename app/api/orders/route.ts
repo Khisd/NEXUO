@@ -21,9 +21,21 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const type = searchParams.get('type');
 
+  // Debug: Cek apakah Supabase terinisialisasi
+  if (!supabaseUrl) {
+    return NextResponse.json({ error: "NEXT_PUBLIC_SUPABASE_URL is missing in .env" }, { status: 500 });
+  }
+
   if (type === 'products') {
     const { data, error } = await supabase.from('products').select('*');
-    return NextResponse.json({ data, error });
+    
+    // Debug: Kembalikan error detail kalau gagal
+    if (error) {
+      console.error("Supabase Error:", error);
+      return NextResponse.json({ data: null, error: error.message }, { status: 400 });
+    }
+    
+    return NextResponse.json({ data, error: null });
   } 
   
   if (type === 'orders') {
