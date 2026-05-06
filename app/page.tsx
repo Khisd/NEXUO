@@ -9,12 +9,29 @@ export default function Home() {
   const [fileName, setFileName] = useState('Klik untuk upload screenshot');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch Products
+    // Fetch Products (VERSI DEBUG)
   useEffect(() => {
-    fetch('/api/orders?type=products')
-      .then(res => res.json())
-      .then(json => setProducts(json.data || []))
-      .catch(err => console.error(err));
+    const loadData = async () => {
+      try {
+        console.log("🔍 Memulai fetch produk...");
+        const res = await fetch('/api/orders?type=products');
+        console.log("📡 Status Fetch:", res.status, res.statusText);
+        
+        const json = await res.json();
+        console.log("📦 Data Mentah dari API:", json);
+
+        if (json.data) {
+          console.log("✅ Jumlah Produk:", json.data.length);
+          setProducts(json.data);
+        } else {
+          console.error("❌ Data null tapi tidak error:", json.error);
+        }
+      } catch (err) {
+        console.error("💥 Gagal Fetch Total:", err);
+      }
+    };
+
+    loadData();
   }, []);
 
   // Scroll Effect Navbar
