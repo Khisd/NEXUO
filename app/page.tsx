@@ -5,30 +5,32 @@ export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
   const [modalData, setModalData] = useState({ show: false, id: '', name: '', price: '' });
   const [email, setEmail] = useState('');
+  // Kita tetap butuh state proof untuk fallback, tapi untuk Cashify utama pakai create_payment
   const [proofFile, setProofFile] = useState<string | null>(null);
   const [fileName, setFileName] = useState('Klik untuk upload screenshot');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Fetch Products (VERSI DEBUG)
+  // Fetch Products (VERSI DEBUG)
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log("🔍 Memulai fetch produk...");
-        const res = await fetch('/api/orders?type=products');
-        console.log("📡 Status Fetch:", res.status, res.statusText);
-        
-        const json = await res.json();
-        console.log("📦 Data Mentah dari API:", json);
+          console.log("🔍 Memulai fetch produk...");
+          const res = await fetch('/api/orders?type=products');
+          console.log("📡 Status Fetch:", res.status, res.statusText);
+          
+          const json = await res.json();
+          console.log("📦 Data Mentah dari API:", json);
 
-        if (json.data) {
-          console.log("✅ Jumlah Produk:", json.data.length);
-          setProducts(json.data);
-        } else {
-          console.error("❌ Data null tapi tidak error:", json.error);
+          if (json.data) {
+            console.log("✅ Jumlah Produk:", json.data.length);
+            setProducts(json.data);
+          } else {
+            console.error("❌ Data null tapi tidak error:", json.error);
+          }
+        } catch (err) {
+          console.error("💥 Gagal Fetch Total:", err);
         }
-      } catch (err) {
-        console.error("💥 Gagal Fetch Total:", err);
-      }
     };
 
     loadData();
@@ -48,7 +50,6 @@ export default function Home() {
   useEffect(() => {
     const canvas = document.getElementById('bg-canvas') as HTMLCanvasElement;
     
-    // Validasi null canvas
     if (!canvas) return; 
     
     const ctx = canvas.getContext('2d');
@@ -87,37 +88,77 @@ export default function Home() {
     const file = e.target.files?.[0];
     if (file) {
       setFileName(file.name);
+      
+      // --- LOGIKA COMPRESS GAMBAR (Untuk Backup Manual) ---
       const reader = new FileReader();
-      reader.onload = (evt) => setProofFile(evt.target?.result as string);
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if(!ctx) return;
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7); 
+          setProofFile(compressedDataUrl); 
+        };
+      };
       reader.readAsDataURL(file);
     }
   };
 
+  // --- UPDATED: SUBMIT ORDER UNTUK CASHIFY ---
   const submitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!proofFile) { showToast('Harap upload bukti transfer!', 'error'); return; }
+    if (!email) { showToast('Harap isi email!', 'error'); return; }
     
+    setIsSubmitting(true);
+
     const payload = {
       orderId: 'ORD-' + Math.floor(Math.random() * 1000000),
       productId: modalData.id,
-      email: email,
-      proof: proofFile
+      email: email
+      // Untuk Cashify, kita tidak kirim 'proof', tapi minta 'qr_code' dari backend
     };
 
     try {
-      const res = await fetch('/api/orders?type=order', {
+      // Request QR Code ke Backend (yang konek ke Cashify)
+      const res = await fetch('/api/orders?type=create_payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      if(data.message === 'success') {
-        closeModal();
-        showToast('Pesanan berhasil! Kami akan verifikasi segera.', 'success');
+
+      if(data.qr_code) {
+        closeModal(); // Tutup modal input
+        
+        // Tampilkan alert user dan buka link Cashify di tab baru
+        alert(`Scan QR Code di jendela baru untuk pembayaran.\n\nID Order: ${data.orderId}\nSetelah pembayaran sukses, link download otomatis dikirim ke email.`);
+        
+        window.open(data.qr_code, '_blank');
+        
+        showToast('Membuka Pembayaran...', 'success');
       } else {
-        showToast('Gagal: ' + (data.error || 'Unknown error'), 'error');
+        showToast('Gagal inisiasi pembayaran: ' + (data.error || 'Unknown error'), 'error');
       }
-    } catch (err) { showToast('Koneksi Error', 'error'); }
+    } catch (err) { showToast('Koneksi Error', 'error'); } 
+    finally {
+      setIsSubmitting(false);
+    }
   };
 
   const showToast = (msg: string, type: 'success' | 'error') => {
@@ -162,9 +203,9 @@ export default function Home() {
           </div>
           <div className="steps-grid">
             <div className="step-card"><div className="step-num">1</div><h4>Pilih Algoritma</h4><p>Pilih robot yang sesuai dengan gaya trading Anda.</p></div>
-            <div className="step-card"><div className="step-num">2</div><h4>Scan & Bayar</h4><p>Lakukan pembayaran via QRIS/Transfer sesuai harga.</p></div>
-            <div className="step-card"><div className="step-num">3</div><h4>Upload Bukti</h4><p>Kirim screenshot bukti transfer di form pembelian.</p></div>
-            <div className="step-card"><div className="step-num">4</div><h4>Terima Email</h4><p>Link download & Panduan dikirim ke email Anda.</p></div>
+            <div className="step-card"><div className="step-num">2</div><h4>Scan QR Code</h4><p>Scan QR Code Cashify untuk pembayaran otomatis via QRIS.</p></div>
+            <div className="step-card"><div className="step-num">3</div><h4>Terima Email Otomatis</h4><p>Link download & Panduan langsung dikirim ke email setelah lunas.</p></div>
+            <div className="step-card"><div className="step-num">4</div><h4>Download Produk</h4><p>Install di MetaTrader 5 atau TradingView dan mulai trading.</p></div>
           </div>
         </div>
       </section>
@@ -205,17 +246,18 @@ export default function Home() {
           <button className="close-modal" onClick={closeModal}>&times;</button>
           <h2 style={{fontSize:'20px', marginBottom:'8px'}}>{modalData.name}</h2>
           <div className="mono" style={{color:'var(--text-secondary)', fontSize:'14px', marginBottom:'24px'}}>Total: <span style={{color:'var(--text-primary)', fontWeight:'700'}}>{modalData.price}</span></div>
-          <div className="qr-section">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=NEXUO_PAYMENT_GATEWAY" alt="QR Payment" />
-            <div style={{color:'#000', fontWeight:'600', fontSize:'13px'}}>Scan QR di Bawah</div>
-            <div className="qr-note">BCA / QRIS / E-Wallet<br/>a.n NEXUO SYSTEMS LTD</div>
+          
+          {/* Removed Static QR, changed to instruction */}
+          <div style={{textAlign:'center', marginBottom:'20px', padding:'20px', background:'#111', borderRadius:'8px'}}>
+             <p style={{color:'#fff'}}>Pembayaran akan dilakukan via <strong>Cashify</strong> (QRIS).</p>
+             <p style={{fontSize:'12px', color:'#888'}}>Pastikan email yang Anda masukkan benar untuk menerima link download otomatis.</p>
           </div>
+
           <form onSubmit={submitOrder}>
             <div className="input-group"><label>Email Anda</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@email.com" required /></div>
-            <div className="input-group"><label>Upload Bukti Transfer</label>
-              <div className="file-upload" onClick={() => fileInputRef.current?.click()}><span id="fileNameDisplay">{fileName}</span><input ref={fileInputRef} type="file" accept="image/*,.pdf" style={{display:'none'}} onChange={handleFileChange} /></div>
-            </div>
-            <button type="submit" className="btn btn-green" style={{width:'100%'}}>Konfirmasi Pembayaran</button>
+            <button type="submit" className="btn btn-green" style={{width:'100%', opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer'}} disabled={isSubmitting}>
+              {isSubmitting ? '⏳ Memproses Pembayaran...' : 'Lanjut ke Pembayaran QRIS'}
+            </button>
           </form>
         </div>
       </div>

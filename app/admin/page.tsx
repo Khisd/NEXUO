@@ -130,7 +130,25 @@ export default function AdminDashboard() {
                     <td style={{ padding: '16px', fontFamily: 'monospace', fontSize: '12px' }}>{o.order_id}</td>
                     <td style={{ padding: '16px', fontWeight: '600' }}>{o.product_name}</td>
                     <td style={{ padding: '16px', color: '#a1a1aa' }}>{o.email}</td>
-                    <td style={{ padding: '16px' }}><a href="#" onClick={(e) => { e.preventDefault(); const w = window.open(); if(w) w.document.write(`<img src="${o.proof}" style="max-width:100%; background:#000;">`); }} style={{ color: '#3b82f6' }}>View</a></td>
+                    <td style={{ padding: '16px' }}>
+                      <button 
+                        onClick={() => {
+                          const w = window.open("", "_blank", "width=600,height=600");
+                          if(w) {
+                            w.document.write(`
+                              <html>
+                                <body style="background:#000; display:flex; justify-content:center; align-items:center; height:100vh; margin:0;">
+                                  <img src="${o.proof}" style="max-width:100%; max-height:100%; border-radius:8px; box-shadow:0 0 20px rgba(0,220,130,0.3);" />
+                                </body>
+                              </html>
+                            `);
+                          }
+                        }}
+                        style={{ background: '#111', color: '#00dc82', border: '1px solid #333', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}
+                      >
+                        👁 Lihat Bukti
+                      </button>
+                    </td>
                     <td style={{ padding: '16px' }}><span style={{ padding: '4px 10px', borderRadius: '100px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', background: o.status === 'pending' ? 'rgba(251, 191, 36, 0.1)' : o.status === 'approved' ? 'rgba(0, 220, 130, 0.1)' : 'rgba(244, 63, 94, 0.1)', color: o.status === 'pending' ? '#fbbf24' : o.status === 'approved' ? '#00dc82' : '#f43f5e' }}>{o.status}</span></td>
                     <td style={{ padding: '16px' }}>
                       {o.status === 'pending' ? (
