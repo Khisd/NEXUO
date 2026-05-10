@@ -9,9 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
-        tailwind.config = {
-            theme: { extend: { fontFamily: { inter: ['Inter','sans-serif'], geist: ['Geist','sans-serif'] }, colors: { brand: '#c6f91f', dark: { 900:'#05080A', 800:'#0B0F13', 700:'#0E1216', 500:'#141a20' } } } }
-        }
+        tailwind.config = { theme: { extend: { fontFamily: { inter: ['Inter','sans-serif'], geist: ['Geist','sans-serif'] }, colors: { brand: '#c6f91f', dark: { 900:'#05080A', 800:'#0B0F13', 700:'#0E1216', 500:'#141a20' } } } } }
     </script>
     <style>
         ::selection { background: rgba(198,249,31,0.3); color: #c6f91f; }
@@ -184,23 +182,29 @@
     async function loadProducts() {
         const res = await fetch(`${API_BASE}/api/products`); const products = await res.json();
         const grid = document.getElementById('indicator-grid');
-        grid.innerHTML = products.map(p => `
+        grid.innerHTML = products.map(p => {
+            // Karena price di DB sekarang TEXT, pastikan jadi angka buat display
+            const priceNum = parseInt(p.price) || 0;
+            const displayPrice = priceNum >= 1000 ? `${priceNum/1000}K` : `$${priceNum}`;
+            const category = p.category || p.tag || 'Indicator';
+            
+            return `
             <div class="glass rounded-xl overflow-hidden group hover:border-brand/20 transition-all duration-300">
                 <div class="h-44 bg-gradient-to-br from-dark-500 to-dark-800 relative flex items-center justify-center overflow-hidden">
                     <div class="absolute inset-0 bg-brand/[0.03] group-hover:bg-brand/[0.06] transition-colors"></div>
                     <i data-lucide="activity" class="w-16 h-16 text-brand/20 group-hover:text-brand/40 transition-colors relative z-10"></i>
-                    <div class="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-[10px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded text-brand">${p.tag || 'Indicator'}</div>
+                    <div class="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-[10px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded text-brand">${category}</div>
                 </div>
                 <div class="p-6">
-                    <div class="flex items-start justify-between mb-2"><h3 class="font-geist font-semibold text-base">${p.name}</h3><span class="font-geist font-semibold text-brand">$${p.price/1000}K</span></div>
+                    <div class="flex items-start justify-between mb-2"><h3 class="font-geist font-semibold text-base">${p.name}</h3><span class="font-geist font-semibold text-brand">Rp ${priceNum.toLocaleString('id-ID')}</span></div>
                     <p class="text-xs text-white/40 leading-relaxed mb-4">${p.description || ''}</p>
                     <div class="flex items-center justify-between pt-4 border-t border-dashed border-white/10">
                         <span class="flex items-center gap-1 text-xs text-white/40"><i data-lucide="star" class="w-3 h-3 text-yellow-400 fill-yellow-400"></i>4.9</span>
-                        <button onclick="openPurchase(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price})" class="text-[10px] font-semibold tracking-wider uppercase bg-brand/10 text-brand border border-brand/20 px-4 py-2 rounded-lg hover:bg-brand/20 transition-colors">Buy</button>
+                        <button onclick="openPurchase(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${priceNum})" class="text-[10px] font-semibold tracking-wider uppercase bg-brand/10 text-brand border border-brand/20 px-4 py-2 rounded-lg hover:bg-brand/20 transition-colors">Buy</button>
                     </div>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
         lucide.createIcons();
     }
 

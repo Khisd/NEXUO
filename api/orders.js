@@ -10,6 +10,8 @@ export default async function handler(req, res) {
     const mailPass = process.env.EMAIL_PASS;
 
     if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'DB not configured' });
+    
+    // WAJIB PAKAI SERVICE ROLE KEY UNTUK NEMBUS RLS SAAT UPDATE STATUS
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     if (req.method === 'GET') {
@@ -21,13 +23,14 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { order_id, product_name, price, email, phone } = req.body;
         let qrisString = null, cashifyTxId = null, totalAmount = price;
+        const numericPrice = parseInt(price);
 
-        if (cashifyLicenseKey && cashifyMerchantCode) {
+        if (cashifyLicenseKey && cashifyMerchantCode && numericPrice > 0) {
             try {
                 const cashifyRes = await fetch('https://cashify.my.id/api/generate/qris', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'x-license-key': cashifyLicenseKey },
-                    body: JSON.stringify({ id: cashifyMerchantCode, amount: price, useUniqueCode: true, packageIds: ["id.dana", "com.gojek.app", "com.shopee.id"], expiredInMinutes: 15 })
+                    body: JSON.stringify({ id: cashifyMerchantCode, amount: numericPrice, useUniqueCode: true, packageIds: ["id.dana", "com.gojek.app", "com.shopee.id"], expiredInMinutes: 15 })
                 });
                 const cashifyData = await cashifyRes.json();
                 if(cashifyData.status === 200 && cashifyData.data) {
@@ -38,13 +41,27 @@ export default async function handler(req, res) {
             } catch (err) { console.error('Cashify Error:', err); }
         }
 
+        // Sesuai SQL kamu: price text, bukan bigint
         const { data, error } = await supabase
             .from('orders')
-            .insert([{ order_id, product_name, price, email, phone, proof: null, status: 'pending', cashify_tx_id: cashifyTxId, total_amount: totalAmount }])
+            .insert([{ 
+                order_id, 
+                product_name, 
+                price: String(totalAmount), // Di DB tipenya TEXT
+                email, 
+                proof: null, 
+                status: 'pending' 
+            }])
             .select();
 
         if (error) return res.status(500).json({ error: error.message });
-        return res.status(201).json({ order: data[0], qris_string: qrisString || 'MOCK_FALLBACK', totalAmount });
+        
+        // Kembalikan ke frontend
+        return res.status(201).json({ 
+            order: data[0], 
+            qris_string: qrisString || 'MOCK_FALLBACK', 
+            totalAmount: totalAmount 
+        });
     }
 
     if (req.method === 'PUT') {
@@ -59,12 +76,24 @@ export default async function handler(req, res) {
 
         if (status === 'approved' && mailUser && mailPass && order.email) {
             try {
+                const { data: productData } = await supabase.from('products').select('download_link, name').eq('name', order.product_name).single();
+                const downloadUrl = productData?.download_link || '#';
+                const productName = productData?.name || order.product_name;
+
                 let transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: mailUser, pass: mailPass } });
                 await transporter.sendMail({
                     from: `"NEXUO Systems" <${mailUser}>`,
                     to: order.email,
-                    subject: `Produk ${order.product_name} Sudah Tersedia!`,
-                    html: `<div style="font-family:sans-serif;color:#333;padding:20px;"><h2>Halo!</h2><p>Pembayaran <strong>${order.product_name}</strong> dikonfirmasi.</p><a href="https://drive.google.com/your-link" style="background:#c6f91f;color:#000;padding:10px 20px;text-decoration:none;border-radius:5px;font-weight:bold;">Download</a></div>`
+                    subject: `Produk ${productName} Sudah Tersedia!`,
+                    html: `
+                        <div style="font-family:sans-serif;color:#333;padding:20px;max-width:500px;margin:auto;border:1px solid #ddd;border-radius:10px;">
+                            <h2 style="color:#05080A;">Halo! Pembayaran Dikonfirmasi ✅</h2>
+                            <p>Terima kasih sudah membeli <strong>${productName}</strong>.</p>
+                            <p>Silakan download produk Anda melalui tombol di bawah ini:</p>
+                            <a href="${downloadUrl}" style="display:inline-block;background:#c6f91f;color:#000;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;margin:10px 0;">Download Sekarang</a>
+                            <p style="font-size:12px;color:#888;margin-top:20px;">Jika ada kendala, balas email ini.</p>
+                        </div>
+                    `
                 });
             } catch (err) { console.error('Nodemailer Error:', err); }
         }
