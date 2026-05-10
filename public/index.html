@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUO — Premium TradingView Indicators</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { inter: ['Inter','sans-serif'], geist: ['Geist','sans-serif'] }, colors: { brand: '#c6f91f', dark: { 900:'#05080A', 800:'#0B0F13', 700:'#0E1216', 500:'#141a20' } } } }
+        }
+    </script>
+    <style>
+        ::selection { background: rgba(198,249,31,0.3); color: #c6f91f; }
+        body { font-family: 'Inter', sans-serif; background: #05080A; color: #fff; }
+        .font-geist { font-family: 'Geist', sans-serif; }
+        @keyframes reveal { from { opacity:0; transform:translateY(20px); filter:blur(8px); } to { opacity:1; transform:translateY(0); filter:blur(0); } }
+        .reveal { animation: reveal 0.8s cubic-bezier(0.2,0.8,0.2,1) both; }
+        .reveal-d1 { animation-delay: 0.1s; } .reveal-d2 { animation-delay: 0.2s; } .reveal-d3 { animation-delay: 0.3s; }
+        @keyframes pulse-glow { 0%,100% { box-shadow:0 0 8px rgba(198,249,31,0.2); } 50% { box-shadow:0 0 20px rgba(198,249,31,0.4); } }
+        .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes marquee-scroll { 0% { transform:translateX(0); } 100% { transform:translateX(-50%); } }
+        .marquee-track { animation: marquee-scroll 40s linear infinite; }
+        .glass { background: rgba(11,15,19,0.8); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.08); }
+        .toast { transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1); }
+        .toast.show { transform: translateX(0); }
+        input:focus { outline: none; border-color: #c6f91f !important; box-shadow: 0 0 0 2px rgba(198,249,31,0.15); }
+        .step-form { display: none; } .step-form.active { display: block; }
+    </style>
+</head>
+<body class="antialiased">
+
+<div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3"></div>
+
+<!-- NAVBAR -->
+<nav class="sticky top-0 z-50 glass">
+    <div class="max-w-screen-2xl mx-auto px-6 h-16 sm:h-20 flex items-center justify-between">
+        <a href="#" class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-brand rounded-md flex items-center justify-center"><span class="text-black font-bold text-sm font-geist">N</span></div>
+            <span class="font-geist font-semibold text-lg tracking-tight">NEXUO</span>
+        </a>
+        <div class="hidden md:flex items-center gap-8">
+            <a href="#indicators" class="text-sm text-white/70 hover:text-white transition-colors">Indicators</a>
+            <a href="#features" class="text-sm text-white/70 hover:text-white transition-colors">Features</a>
+            <a href="#stats" class="text-sm text-white/70 hover:text-white transition-colors">Statistics</a>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="relative overflow-hidden" style="background: radial-gradient(ellipse at top left, rgba(30,41,59,0.4), #05080A, #05080A);">
+    <div class="absolute top-0 left-1/4 w-[600px] h-[600px] bg-brand/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="max-w-screen-2xl mx-auto px-6 pt-24 pb-20 lg:pt-32 lg:pb-40 text-center">
+        <div class="reveal flex justify-center items-center gap-2 mb-6">
+            <span class="w-2 h-2 bg-brand rounded-full pulse-glow"></span>
+            <span class="text-[10px] font-semibold tracking-[0.15em] uppercase text-brand">Operational</span>
+        </div>
+        <h1 class="reveal reveal-d1 font-geist font-light text-4xl sm:text-5xl lg:text-7xl tracking-tighter leading-[1.1] mb-6">
+            Trading <span class="text-brand">Indicators</span><br>That Work
+        </h1>
+        <p class="reveal reveal-d2 text-lg lg:text-xl font-light text-white/70 leading-relaxed max-w-xl mx-auto mb-8">
+            Marketplace premium untuk indikator TradingView. Dapatkan sinyal akurat dan edge di pasar.
+        </p>
+        <div class="reveal reveal-d3 flex flex-wrap justify-center gap-4">
+            <a href="#indicators" class="inline-flex items-center gap-2 bg-brand text-black text-xs font-medium tracking-wide uppercase px-6 py-3.5 rounded-lg hover:bg-brand/90 transition-colors">
+                Explore Indicators <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="border-y border-white/5 overflow-hidden py-5 bg-dark-800/50">
+    <div class="marquee-track flex items-center gap-10 whitespace-nowrap" style="width: max-content;">
+        <span class="text-xs tracking-widest uppercase text-white/20 flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-4 h-4"></i> RSI Pro</span>
+        <span class="text-xs tracking-widest uppercase text-white/20 flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4"></i> MACD Elite</span>
+        <span class="text-xs tracking-widest uppercase text-white/20 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4"></i> ScalpX</span>
+        <span class="text-xs tracking-widest uppercase text-white/20 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4"></i> Volume Surge</span>
+        <span class="text-xs tracking-widest uppercase text-white/20 flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-4 h-4"></i> RSI Pro</span>
+        <span class="text-xs tracking-widest uppercase text-white/20 flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4"></i> MACD Elite</span>
+    </div>
+</div>
+
+<!-- INDICATORS (DYNAMIC) -->
+<section id="indicators" class="py-24 relative">
+    <div class="max-w-screen-2xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <span class="text-[10px] font-semibold tracking-[0.15em] uppercase text-brand">Marketplace</span>
+            <h2 class="font-geist font-light text-3xl sm:text-4xl lg:text-6xl tracking-tighter mt-3 leading-[1.1]">Premium Indicators</h2>
+        </div>
+        <div id="indicator-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="text-center text-white/30 col-span-3 py-10">Loading products...</div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="py-24 border-t border-white/5">
+    <div class="max-w-screen-2xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <span class="text-[10px] font-semibold tracking-[0.15em] uppercase text-brand">Why NEXUO</span>
+            <h2 class="font-geist font-light text-3xl sm:text-4xl lg:text-6xl tracking-tighter mt-3 leading-[1.1]">Built for Traders</h2>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="group glass rounded-xl p-8 hover:bg-white/[0.03] transition-colors duration-300"><div class="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center mb-5"><i data-lucide="shield-check" class="w-6 h-6 text-brand"></i></div><h3 class="font-geist font-semibold text-lg mb-2">Verified</h3><p class="text-sm text-white/50 leading-relaxed">Proses verifikasi ketat sebelum masuk marketplace.</p></div>
+            <div class="group glass rounded-xl p-8 hover:bg-white/[0.03] transition-colors duration-300"><div class="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center mb-5"><i data-lucide="zap" class="w-6 h-6 text-brand"></i></div><h3 class="font-geist font-semibold text-lg mb-2">Real-Time</h3><p class="text-sm text-white/50 leading-relaxed">Sinyal real-time langsung dari TradingView tanpa delay.</p></div>
+            <div class="group glass rounded-xl p-8 hover:bg-white/[0.03] transition-colors duration-300"><div class="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center mb-5"><i data-lucide="lock" class="w-6 h-6 text-brand"></i></div><h3 class="font-geist font-semibold text-lg mb-2">Secure</h3><p class="text-sm text-white/50 leading-relaxed">Akses terenkripsi dan lisensi eksklusif untuk setiap pembelian.</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- STATISTICS (Counter Only, No Charts) -->
+<section id="stats" class="py-24 border-t border-white/5 relative overflow-hidden">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-brand/3 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="max-w-screen-2xl mx-auto px-6 relative z-10">
+        <div class="text-center mb-16">
+            <span class="text-[10px] font-semibold tracking-[0.15em] uppercase text-brand">Analytics</span>
+            <h2 class="font-geist font-light text-3xl sm:text-4xl lg:text-6xl tracking-tighter mt-3 leading-[1.1]">Platform Statistics</h2>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass rounded-xl p-6 text-center"><p class="font-geist font-light text-3xl lg:text-4xl tracking-tight text-brand counter" data-target="12847">0</p><p class="text-xs text-white/40 mt-2 uppercase tracking-wider">Users</p></div>
+            <div class="glass rounded-xl p-6 text-center"><p class="font-geist font-light text-3xl lg:text-4xl tracking-tight text-brand counter" data-target="54">0</p><p class="text-xs text-white/40 mt-2 uppercase tracking-wider">Indicators</p></div>
+            <div class="glass rounded-xl p-6 text-center"><p class="font-geist font-light text-3xl lg:text-4xl tracking-tight text-brand counter" data-target="3421">0</p><p class="text-xs text-white/40 mt-2 uppercase tracking-wider">Transactions</p></div>
+            <div class="glass rounded-xl p-6 text-center"><p class="font-geist font-light text-3xl lg:text-4xl tracking-tight text-brand counter" data-target="89">0</p><p class="text-xs text-white/40 mt-2 uppercase tracking-wider">Win Rate %</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="border-t border-white/5 py-12">
+    <div class="max-w-screen-2xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-white/30">&copy; 2026 NEXUO. All rights reserved.</p>
+        <a href="/admin" class="text-xs text-white/20 hover:text-white/50 transition-colors">Staff</a>
+    </div>
+</footer>
+
+<!-- PURCHASE MODAL -->
+<div id="purchase-modal" class="fixed inset-0 z-[100] hidden items-center justify-center" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
+    <div class="glass rounded-2xl p-8 w-full max-w-md mx-4 relative max-h-[90vh] overflow-y-auto no-scrollbar">
+        <button onclick="closeModal('purchase-modal')" class="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <h3 class="font-geist font-semibold text-xl mb-1" id="purchase-item-name">—</h3>
+        <p class="text-sm text-white/40 mb-6">Complete your purchase via QRIS</p>
+
+        <div id="step1" class="step-form active">
+            <div class="space-y-4">
+                <div><label class="text-xs text-white/40 mb-1.5 block">Email</label><input type="email" id="purchase-email" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-white/20" placeholder="trader@nexuo.io"></div>
+                <div><label class="text-xs text-white/40 mb-1.5 block">No. WhatsApp</label><input type="tel" id="purchase-phone" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-white/20" placeholder="08123456789"></div>
+                <button onclick="processToPayment()" class="w-full bg-brand text-black text-xs font-medium tracking-wide uppercase py-3.5 rounded-lg hover:bg-brand/90 transition-colors">Lanjut Bayar</button>
+            </div>
+        </div>
+
+        <div id="step2" class="step-form">
+            <div class="text-center mb-4">
+                <p class="text-[10px] text-white/40 uppercase tracking-wider">Bayar Tepat Sekumlah:</p>
+                <p class="font-geist font-semibold text-2xl text-brand mt-1" id="purchase-total-amount">Rp 0</p>
+                <p class="text-[10px] text-red-400 mt-1">*Pembayaran harus pas agar terdeteksi</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 text-center mb-4">
+                <p class="text-xs font-semibold text-black mb-2">Scan QRIS</p>
+                <img id="qris-image" src="" class="w-48 h-48 mx-auto hidden" alt="QRIS">
+                <div id="qris-loader" class="w-48 h-48 mx-auto bg-gray-200 rounded flex items-center justify-center text-gray-500 text-xs">Generating...</div>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-white/40 mb-1.5 block">Upload Bukti (Wajib)</label>
+                    <div class="border border-dashed border-white/10 rounded-lg p-4 text-center cursor-pointer hover:border-brand/30 transition-colors" onclick="document.getElementById('proof-input').click()">
+                        <span id="file-name-display" class="text-xs text-white/40">Klik upload screenshot</span>
+                        <input type="file" id="proof-input" accept="image/*" class="hidden" onchange="handleFileSelect(this)">
+                    </div>
+                </div>
+                <button id="submit-order-btn" onclick="submitOrder()" disabled class="w-full bg-brand/50 text-black text-xs font-medium tracking-wide uppercase py-3.5 rounded-lg cursor-not-allowed transition-colors">Konfirmasi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = window.location.origin;
+    let currentProduct = null, currentOrder = null, selectedProofData = null;
+
+    async function loadProducts() {
+        const res = await fetch(`${API_BASE}/api/products`); const products = await res.json();
+        const grid = document.getElementById('indicator-grid');
+        grid.innerHTML = products.map(p => `
+            <div class="glass rounded-xl overflow-hidden group hover:border-brand/20 transition-all duration-300">
+                <div class="h-44 bg-gradient-to-br from-dark-500 to-dark-800 relative flex items-center justify-center overflow-hidden">
+                    <div class="absolute inset-0 bg-brand/[0.03] group-hover:bg-brand/[0.06] transition-colors"></div>
+                    <i data-lucide="activity" class="w-16 h-16 text-brand/20 group-hover:text-brand/40 transition-colors relative z-10"></i>
+                    <div class="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-[10px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded text-brand">${p.tag || 'Indicator'}</div>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-start justify-between mb-2"><h3 class="font-geist font-semibold text-base">${p.name}</h3><span class="font-geist font-semibold text-brand">$${p.price/1000}K</span></div>
+                    <p class="text-xs text-white/40 leading-relaxed mb-4">${p.description || ''}</p>
+                    <div class="flex items-center justify-between pt-4 border-t border-dashed border-white/10">
+                        <span class="flex items-center gap-1 text-xs text-white/40"><i data-lucide="star" class="w-3 h-3 text-yellow-400 fill-yellow-400"></i>4.9</span>
+                        <button onclick="openPurchase(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price})" class="text-[10px] font-semibold tracking-wider uppercase bg-brand/10 text-brand border border-brand/20 px-4 py-2 rounded-lg hover:bg-brand/20 transition-colors">Buy</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function closeModal(id) { const m = document.getElementById(id); m.classList.add('hidden'); m.classList.remove('flex'); }
+    
+    function openPurchase(id, name, price) {
+        currentProduct = { id, name, price };
+        document.getElementById('purchase-item-name').textContent = name;
+        document.getElementById('step1').classList.add('active'); document.getElementById('step2').classList.remove('active');
+        document.getElementById('purchase-email').value = ''; document.getElementById('purchase-phone').value = '';
+        document.getElementById('proof-input').value = ''; document.getElementById('file-name-display').textContent = 'Klik upload screenshot';
+        const btn = document.getElementById('submit-order-btn'); btn.disabled = true; btn.classList.add('bg-brand/50','cursor-not-allowed'); btn.classList.remove('bg-brand','hover:bg-brand/90');
+        const m = document.getElementById('purchase-modal'); m.classList.remove('hidden'); m.classList.add('flex');
+    }
+
+    async function processToPayment() {
+        const email = document.getElementById('purchase-email').value, phone = document.getElementById('purchase-phone').value;
+        if(!email || !phone) { showToast('Harap isi Email dan No HP', 'error'); return; }
+        const orderId = 'ORD-' + Date.now();
+        document.getElementById('qris-loader').style.display = 'flex'; document.getElementById('qris-image').classList.add('hidden');
+        try {
+            const res = await fetch(`${API_BASE}/api/orders`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ order_id: orderId, product_name: currentProduct.name, price: currentProduct.price, email, phone }) });
+            const data = await res.json(); currentOrder = data.order;
+            document.getElementById('purchase-total-amount').textContent = 'Rp ' + data.totalAmount.toLocaleString('id-ID');
+            document.getElementById('qris-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.qris_string)}`;
+            document.getElementById('qris-image').onload = () => { document.getElementById('qris-loader').style.display = 'none'; document.getElementById('qris-image').classList.remove('hidden'); };
+            document.getElementById('step1').classList.remove('active'); document.getElementById('step2').classList.add('active');
+        } catch (e) { showToast('Gagal membuat pesanan', 'error'); }
+    }
+
+    function handleFileSelect(input) {
+        if (input.files[0]) {
+            document.getElementById('file-name-display').textContent = input.files[0].name;
+            const btn = document.getElementById('submit-order-btn'); btn.disabled = false; btn.classList.remove('bg-brand/50','cursor-not-allowed'); btn.classList.add('bg-brand','hover:bg-brand/90');
+            const reader = new FileReader(); reader.onload = e => selectedProofData = e.target.result; reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function submitOrder() {
+        if (!selectedProofData || !currentOrder) return;
+        const btn = document.getElementById('submit-order-btn'); btn.disabled = true; btn.innerHTML = 'Menyimpan...';
+        try {
+            await fetch(`${API_BASE}/api/orders`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ order_id: currentOrder.order_id, proof: selectedProofData }) });
+            closeModal('purchase-modal'); showToast('Bukti terkirim! Menunggu Admin Approve.', 'success');
+        } catch (e) { showToast('Gagal upload bukti', 'error'); }
+    }
+
+    function showToast(msg, type='success') {
+        const container = document.getElementById('toast-container'); const toast = document.createElement('div');
+        const colors = { success: 'border-green-500/30 bg-green-500/10', error: 'border-red-500/30 bg-red-500/10' };
+        const icons = { success: 'check-circle', error: 'alert-circle' }; const textColors = { success: 'text-green-400', error: 'text-red-400' };
+        toast.className = `toast glass rounded-xl px-5 py-3.5 flex items-center gap-3 min-w-[300px] border ${colors[type]}`;
+        toast.innerHTML = `<i data-lucide="${icons[type]}" class="w-5 h-5 ${textColors[type]} flex-shrink-0"></i><p class="text-sm text-white/80 flex-1">${msg}</p>`;
+        container.appendChild(toast); lucide.createIcons();
+        requestAnimationFrame(() => toast.classList.add('show'));
+        setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
+    }
+
+    function animateCounters() {
+        document.querySelectorAll('.counter').forEach(el => {
+            const target = parseInt(el.dataset.target); const duration = 2000; const start = performance.now();
+            function update(now) { const elapsed = now - start; const progress = Math.min(elapsed / duration, 1); el.textContent = Math.round(target * (1 - Math.pow(1 - progress, 3))).toLocaleString(); if (progress < 1) requestAnimationFrame(update); }
+            requestAnimationFrame(update);
+        });
+    }
+    const observer = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) animateCounters(); }); }, { threshold: 0.2 });
+    
+    document.addEventListener('DOMContentLoaded', () => { loadProducts(); lucide.createIcons(); observer.observe(document.getElementById('stats')); });
+</script>
+</body>
+</html>
