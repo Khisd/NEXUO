@@ -22,14 +22,35 @@
         input:focus, select:focus, textarea:focus { outline: none; border-color: #c6f91f !important; box-shadow: 0 0 0 2px rgba(198,249,31,0.15); }
     </style>
 </head>
-<body class="antialiased p-6 md:p-10">
+<body class="antialiased">
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen" class="min-h-screen flex items-center justify-center p-6">
+    <div class="glass rounded-2xl p-8 w-full max-w-sm text-center">
+        <div class="w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center mx-auto mb-6"><i data-lucide="shield" class="w-6 h-6 text-brand"></i></div>
+        <h1 class="font-geist font-semibold text-xl mb-1">Staff Access</h1>
+        <p class="text-sm text-white/40 mb-6">Area terbatas. Masukkan password.</p>
+        <form onsubmit="handleLogin(event)">
+            <input type="password" id="admin-password" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-white/20 mb-4" placeholder="Password">
+            <button type="submit" class="w-full bg-brand text-black text-xs font-medium tracking-wide uppercase py-3.5 rounded-lg hover:bg-brand/90 transition-colors">Masuk</button>
+        </form>
+        <p id="login-error" class="text-xs text-red-400 mt-3 hidden">Password salah!</p>
+        <a href="/" class="inline-block mt-6 text-xs text-white/30 hover:text-white/60 transition-colors">← Kembali ke Website</a>
+    </div>
+</div>
+
+<!-- ===== DASHBOARD SCREEN ===== -->
+<div id="dashboard-screen" class="hidden p-6 md:p-10">
     <div class="max-w-6xl mx-auto">
         <header class="flex justify-between items-center mb-8">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 bg-brand rounded-md flex items-center justify-center"><span class="text-black font-bold text-sm font-geist">N</span></div>
                 <h1 class="font-geist font-semibold text-xl">NEXUO <span class="text-white/30 font-light text-sm">// ADMIN</span></h1>
             </div>
-            <a href="/" class="text-xs text-white/30 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition-colors">← Kembali</a>
+            <div class="flex items-center gap-3">
+                <a href="/" class="text-xs text-white/30 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition-colors">← Website</a>
+                <button onclick="handleLogout()" class="text-xs text-red-400 hover:text-red-300 border border-red-500/20 px-3 py-1.5 rounded-lg transition-colors">Logout</button>
+            </div>
         </header>
 
         <div class="flex gap-4 mb-8 border-b border-white/5 pb-3">
@@ -76,16 +97,50 @@
             </div>
         </div>
     </div>
+</div>
 
-    <div id="proof-modal" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden');this.classList.remove('flex')">
-        <img id="proof-img" src="" class="max-w-full max-h-full rounded-lg">
-    </div>
-    <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3"></div>
+<!-- Modal Bukti Bayar -->
+<div id="proof-modal" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden');this.classList.remove('flex')">
+    <img id="proof-img" src="" class="max-w-full max-h-full rounded-lg">
+</div>
+<div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3"></div>
 
 <script>
     const API_BASE = window.location.origin;
     let myChart = null;
+    const ADMIN_PASSWORD = 'nexuo2026'; // GANTI PASSWORD KAMU DI SINI
 
+    // ===== AUTH LOGIC =====
+    function checkAuth() {
+        const isAuth = sessionStorage.getItem('nexuo_auth');
+        if (isAuth === 'true') {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            loadOrders(); lucide.createIcons();
+        } else {
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+        }
+    }
+
+    function handleLogin(e) {
+        e.preventDefault();
+        const pass = document.getElementById('admin-password').value;
+        if (pass === ADMIN_PASSWORD) {
+            sessionStorage.setItem('nexuo_auth', 'true');
+            checkAuth();
+        } else {
+            document.getElementById('login-error').classList.remove('hidden');
+            document.getElementById('admin-password').value = '';
+        }
+    }
+
+    function handleLogout() {
+        sessionStorage.removeItem('nexuo_auth');
+        checkAuth();
+    }
+
+    // ===== TAB LOGIC =====
     function switchTab(tab) {
         document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('text-brand','border-brand'); b.classList.add('text-white/30','border-transparent'); });
         event.target.classList.add('text-brand','border-brand'); event.target.classList.remove('text-white/30','border-transparent');
@@ -94,11 +149,10 @@
         if(tab === 'orders') loadOrders(); else loadProducts();
     }
 
+    // ===== ORDERS LOGIC =====
     async function loadOrders() {
         const res = await fetch(`${API_BASE}/api/orders`); const orders = await res.json();
         const approved = orders.filter(o => o.status === 'approved'); const pending = orders.filter(o => o.status === 'pending'); const rejected = orders.filter(o => o.status === 'rejected');
-        
-        // Karena price TEXT, parse jadi angka dulu
         const rev = approved.reduce((s,o) => s + (parseInt(o.price) || 0), 0);
         document.getElementById('statRevenue').textContent = 'Rp ' + rev.toLocaleString('id-ID');
         document.getElementById('statTotal').textContent = orders.length; document.getElementById('statPending').textContent = pending.length; document.getElementById('statRejected').textContent = rejected.length;
@@ -122,6 +176,7 @@
     function viewProof(url) { document.getElementById('proof-img').src = url; const m = document.getElementById('proof-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
     async function updStatus(id, status) { await fetch(`${API_BASE}/api/orders`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({order_id: id, status}) }); showToast(`Order ${status}! Email terkirim.`); loadOrders(); }
 
+    // ===== PRODUCTS LOGIC =====
     async function loadProducts() {
         const res = await fetch(`${API_BASE}/api/products`); const prods = await res.json();
         document.getElementById('productsTableBody').innerHTML = prods.map(p => 
@@ -156,7 +211,8 @@
 
     function showToast(msg) { const c = document.getElementById('toast-container'); const t = document.createElement('div'); t.className = 'toast glass rounded-xl px-4 py-2.5 text-sm text-white/80 border border-brand/20'; t.textContent = msg; c.appendChild(t); requestAnimationFrame(() => t.classList.add('show')); setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000); }
 
-    loadOrders(); lucide.createIcons();
+    // INIT CHECK AUTH SAAT BUKA HALAMAN
+    checkAuth();
 </script>
 </body>
 </html>
