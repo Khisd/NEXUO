@@ -81,10 +81,8 @@
         <div id="tab-products" class="hidden">
             <div class="panel rounded p-5 mb-6">
                 <h3 class="font-mono font-semibold text-sm mb-4 text-white">/// ADD_NEW_PRODUCT</h3>
-                
-                <!-- Basic Info -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                    <input type="text" id="pName" placeholder="Product Name (e.g. NEXUO Sniper Pro)" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono">
+                    <input type="text" id="pName" placeholder="Product Name (e.g. NEXUO Sniper Pro)" value="NEXUO Sniper Pro" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono">
                     <input type="text" id="pPrice" placeholder="Price (e.g. 249000)" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono">
                     <select id="pCategory" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white font-mono">
                         <option value="Pine Script">Pine Script (TradingView)</option>
@@ -94,31 +92,14 @@
                         <option value="EA/ Robot">EA/ Robot</option>
                     </select>
                 </div>
-
-                <!-- Script Code -->
-                <div class="mb-3">
-                    <label class="text-[10px] text-hack/40 mb-1.5 block font-mono">SCRIPT_CODE (PINE SCRIPT / MQL5)</label>
-                    <textarea id="pScriptCode" placeholder="//@version=6&#10;indicator('NEXUO Sniper Pro', overlay=true, ...)" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono h-32 w-full" style="font-family: 'JetBrains Mono', monospace; font-size: 10px;"></textarea>
-                </div>
-
-                <!-- Default Settings (JSON) -->
-                <div class="mb-3">
-                    <label class="text-[10px] text-hack/40 mb-1.5 block font-mono">DEFAULT_SETTINGS (JSON)</label>
-                    <textarea id="pSettings" placeholder='{"fastMaPeriod": 9, "slowMaPeriod": 21, "barCloseConfirm": true, "atrSlMultiplier": 1.5, "targetCount": 5}' class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono h-20 w-full" style="font-family: 'JetBrains Mono', monospace; font-size: 10px;"></textarea>
-                </div>
-
-                <!-- Features & Link -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <input type="text" id="pFeatures" placeholder="Features (comma separated: Auto SL, TP Levels, Dashboard)" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono">
-                    <input type="text" id="pLink" placeholder="Download Link (GDrive/Discord)" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono">
+                    <input type="text" id="pFeatures" placeholder="Features (comma separated: Auto SL, TP Levels, Dashboard, Confluence Filter)" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono">
+                    <input type="text" id="pLink" placeholder="Input Manual di Admin Nanti" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono">
                 </div>
-                
                 <div class="mb-4">
-                    <textarea id="pDesc" placeholder="Description - Jelaskan fungsi utama produk..." class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono h-16 w-full"></textarea>
+                    <textarea id="pDesc" placeholder="Description - Penjelasan indikator, fitur utama, dll" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono h-16 w-full"></textarea>
                 </div>
-
                 <button onclick="addProduct()" class="bg-hack text-black text-xs font-mono font-semibold tracking-wider uppercase px-5 py-2 rounded hover:bg-hack/90 transition-colors">./ADD_PRODUCT</button>
-                <button onclick="loadDefaultSettings()" class="ml-2 bg-hack/20 text-hack border border-hack/20 text-xs font-mono font-medium tracking-wider uppercase px-4 py-2 rounded hover:bg-hack/30 transition-colors">./LOAD_TEMPLATE</button>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
@@ -157,17 +138,6 @@
 <!-- Modal Bukti Bayar -->
 <div id="proof-modal" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden');this.classList.remove('flex')">
     <img id="proof-img" src="" class="max-w-full max-h-full rounded border border-hack/20">
-</div>
-
-<!-- Modal Product Detail -->
-<div id="detail-modal" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center p-4">
-    <div class="panel rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="font-mono font-semibold text-hack">/// PRODUCT_DETAIL</h3>
-            <button onclick="document.getElementById('detail-modal').classList.add('hidden');document.getElementById('detail-modal').classList.remove('flex')" class="text-hack/40 hover:text-hack">&gt;_CLOSE</button>
-        </div>
-        <div id="detail-content" class="font-mono text-xs"></div>
-    </div>
 </div>
 <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3"></div>
 
@@ -234,50 +204,19 @@
     function viewProof(url) { document.getElementById('proof-img').src = url; const m = document.getElementById('proof-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
     async function updStatus(id, status) { await fetch(`${API_BASE}/api/orders`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({order_id: id, status}) }); showToast(`/// ORDER_${status.toUpperCase()}`); loadOrders(); }
 
-    let allProducts = [];
-
     async function loadProducts() {
-        const res = await fetch(`${API_BASE}/api/products`); allProducts = await res.json();
-        document.getElementById('productsTableBody').innerHTML = allProducts.map(p => {
-            let featuresObj = {};
-            try { featuresObj = p.features ? JSON.parse(p.features) : {}; } catch(e) { featuresObj = {}; }
-            let hasScript = featuresObj.script_code && featuresObj.script_code.length > 0;
-            return `<tr class="border-b border-hack/5 hover:bg-hack/[0.02]">
+        const res = await fetch(`${API_BASE}/api/products`); const prods = await res.json();
+        document.getElementById('productsTableBody').innerHTML = prods.map(p => 
+            `<tr class="border-b border-hack/5 hover:bg-hack/[0.02]">
                 <td class="p-2 text-hack/40">${p.id}</td>
                 <td class="p-2 text-white">${p.name}</td>
                 <td class="p-2 font-mono">${(parseInt(p.price) || 0).toLocaleString('id-ID')}</td>
                 <td class="p-2 text-hack/60">${p.category || '-'}</td>
                 <td class="p-2 text-right">
-                    ${hasScript ? `<button onclick="viewProduct(${p.id})" class="text-[10px] bg-hack/10 text-hack px-2 py-1 rounded hover:bg-hack/20 mr-1">VIEW</button>` : ''}
                     <button onclick="delProduct(${p.id})" class="text-[10px] bg-red-500/10 text-red-400 px-2 py-1 rounded hover:bg-red-500/20">DEL</button>
                 </td>
-            </tr>`;
-        }).join('');
-    }
-
-    function viewProduct(id) {
-        const p = allProducts.find(x => x.id === id);
-        if(!p) return;
-        let featuresObj = {};
-        try { featuresObj = p.features ? JSON.parse(p.features) : {}; } catch(e) {}
-        
-        let content = `<div class="text-left text-xs font-mono space-y-2">
-            <p><span class="text-hack/50">NAME:</span> ${p.name}</p>
-            <p><span class="text-hack/50">PRICE:</span> Rp ${(parseInt(p.price) || 0).toLocaleString('id-ID')}</p>
-            <p><span class="text-hack/50">CATEGORY:</span> ${p.category}</p>
-            <p><span class="text-hack/50">DESC:</span> ${p.description || '-'}</p>
-            <p><span class="text-hack/50">FEATURES:</span> ${featuresObj.features || '-'}</p>
-            <p><span class="text-hack/50">LINK:</span> ${p.download_link || '-'}</p>
-            <hr class="border-hack/10 my-2">
-            <p class="text-hack">/// SCRIPT_CODE (${(featuresObj.script_code || '').length} chars)</p>
-            <pre class="bg-black p-2 rounded text-[8px] overflow-auto max-h-40 text-hack/60">${featuresObj.script_code || 'NO CODE'}</pre>
-            <hr class="border-hack/10 my-2">
-            <p class="text-hack">/// DEFAULT_SETTINGS</p>
-            <pre class="bg-black p-2 rounded text-[8px] overflow-auto max-h-32 text-hack/60">${JSON.stringify(featuresObj.settings || {}, null, 2)}</pre>
-        </div>`;
-        
-        document.getElementById('detail-content').innerHTML = content;
-        const m = document.getElementById('detail-modal'); m.classList.remove('hidden'); m.classList.add('flex');
+            </tr>`
+        ).join('');
     }
 
     async function addProduct() {
@@ -287,17 +226,8 @@
         const features = document.getElementById('pFeatures').value;
         const download_link = document.getElementById('pLink').value;
         const description = document.getElementById('pDesc').value;
-        const script_code = document.getElementById('pScriptCode').value;
-        const settings = document.getElementById('pSettings').value;
         
         if(!name || !price) return showToast('/// ERROR: Name & Price required', 'error');
-        
-        // Gabungkan features + script_code + settings dalam format JSON
-        const extendedFeatures = {
-            features: features,
-            script_code: script_code,
-            settings: settings ? JSON.parse(settings) : {}
-        };
         
         await fetch(`${API_BASE}/api/products`, { 
             method: 'POST', 
@@ -306,65 +236,20 @@
                 name, 
                 price, 
                 category, 
-                features: JSON.stringify(extendedFeatures), 
+                features, 
                 download_link, 
                 description
             })
         });
         
-        // Clear form
-        document.getElementById('pName').value=''; 
-        document.getElementById('pPrice').value=''; 
-        document.getElementById('pCategory').value='Pine Script'; 
-        document.getElementById('pFeatures').value=''; 
-        document.getElementById('pLink').value=''; 
-        document.getElementById('pDesc').value='';
-        document.getElementById('pScriptCode').value='';
-        document.getElementById('pSettings').value='';
+        document.getElementById('pName').value = 'NEXUO Sniper Pro';
+        document.getElementById('pPrice').value = '';
+        document.getElementById('pCategory').value = 'Pine Script';
+        document.getElementById('pFeatures').value = '';
+        document.getElementById('pLink').value = '';
+        document.getElementById('pDesc').value = '';
         
         showToast('/// SUCCESS: Product added'); loadProducts();
-    }
-
-    function loadDefaultSettings() {
-        const defaultSettings = {
-            "Signal Settings": {
-                "fastMaPeriod": 9,
-                "slowMaPeriod": 21,
-                "barCloseConfirm": true,
-                "barsAfterExit": 3
-            },
-            "Confluence Filter": {
-                "useConfluenceFilter": true,
-                "minConfluenceScore": 4
-            },
-            "Risk Management": {
-                "atrSlMultiplier": 1.5,
-                "atrPeriod": 14,
-                "targetCount": 5,
-                "trailSlToBreakeven": true,
-                "autoResetPosition": true
-            },
-            "Secondary Timeframe": {
-                "secondaryTf": "5"
-            },
-            "Dashboard": {
-                "showDashboard": true,
-                "dashPosition": "Middle Left",
-                "dashFontSize": "small"
-            },
-            "Visuals": {
-                "showRibbon": true,
-                "ribbonTransparency": 75,
-                "showVwap": true,
-                "showTpLines": true,
-                "tradeLabelSize": "small",
-                "labelBarOffset": 12,
-                "showRetestHighlight": true,
-                "optimizePerformance": true
-            }
-        };
-        document.getElementById('pSettings').value = JSON.stringify(defaultSettings, null, 2);
-        showToast('/// TEMPLATE LOADED');
     }
 
     async function delProduct(id) { if(confirm('/// DELETE_PRODUCT?')) { await fetch(`${API_BASE}/api/products`, { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({id}) }); showToast('/// DONE: Deleted'); loadProducts(); } }
