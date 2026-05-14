@@ -10,15 +10,19 @@ export default async function handler(req, res) {
 
     try {
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
         if (!supabaseUrl || !supabaseKey) {
             console.error('DB not configured - missing env vars');
-            return res.status(500).json({ error: 'Server configuration error' });
+            return res.status(500).json({ error: 'Server configuration error - check Vercel env vars' });
         }
 
         const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        // Gunakan service role key jika ada, kalau tidak gunakan anon key
+        const supabase = createClient(supabaseUrl, supabaseKey, {
+            auth: { persistSession: false }
+        });
 
         if (req.method === 'GET') {
             const { data, error } = await supabase
@@ -34,6 +38,11 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'POST') {
+            // Untuk POST, wajib pakai service role key
+            if (!supabaseKey || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+                return res.status(500).json({ error: 'Admin access required - set SUPABASE_SERVICE_ROLE_KEY' });
+            }
+
             const { name, price, category, description, features, download_link } = req.body;
             
             if (!name || !price) {
@@ -63,6 +72,10 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'DELETE') {
+            if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+                return res.status(500).json({ error: 'Admin access required' });
+            }
+
             const { id } = req.body;
             
             if (!id) {

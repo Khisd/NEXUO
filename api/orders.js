@@ -10,15 +10,18 @@ export default async function handler(req, res) {
 
     try {
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
         if (!supabaseUrl || !supabaseKey) {
             console.error('DB not configured - missing env vars');
-            return res.status(500).json({ error: 'Server configuration error' });
+            return res.status(500).json({ error: 'Server configuration error - check Vercel env vars' });
         }
 
         const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        const supabase = createClient(supabaseUrl, supabaseKey, {
+            auth: { persistSession: false }
+        });
 
         if (req.method === 'GET') {
             const { data, error } = await supabase
@@ -44,7 +47,7 @@ export default async function handler(req, res) {
             let totalAmount = numericPrice;
             let qrisString = 'MOCK_FALLBACK';
 
-            // Try Cashify QRIS (optional - won't fail if missing)
+            // Try Cashify QRIS (optional)
             const cashifyLicenseKey = process.env.CASHIFY_LICENSE_KEY;
             const cashifyMerchantCode = process.env.CASHIFY_MERCHANT_CODE;
 
@@ -101,6 +104,11 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'PUT') {
+            // Untuk update status, wajib punya service role key
+            if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+                return res.status(500).json({ error: 'Admin access required - set SUPABASE_SERVICE_ROLE_KEY' });
+            }
+
             const { order_id, status, proof } = req.body;
             
             if (!order_id) {
@@ -124,7 +132,7 @@ export default async function handler(req, res) {
 
             const order = data[0];
 
-            // Send email if approved (optional - won't fail if Gmail not configured)
+            // Send email if approved (optional)
             if (status === 'approved' && order.email) {
                 try {
                     const mailUser = process.env.EMAIL_USER;
