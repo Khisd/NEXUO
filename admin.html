@@ -3,88 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUO // ADMIN_PANEL</title>
+    <title>NEXUO Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { mono: ['JetBrains Mono','monospace'] }, colors: { hack: { green: '#00ff41', greenDim: '#00ff4133', dark: '#0a0a0a', panel: '#111111', border: '#222222', text: '#e0e0e0', muted: '#666666', red: '#ff4444', yellow: '#ffaa00' } } } } }
+        tailwind.config = { theme: { extend: { fontFamily: { inter: ['Inter','sans-serif'] }, colors: { primary: '#6366f1', dark: { 950:'#030712', 900:'#0f0f13', 800:'#18181b', 700:'#27272a' } } } } }
     </script>
     <style>
-        ::selection { background: rgba(0,255,65,0.2); color: #00ff41; }
-        body { font-family: 'JetBrains Mono', monospace; background: #0a0a0a; color: #e0e0e0; }
-        .text-hack { color: #00ff41; }
-        .bg-hack { background-color: #00ff41; }
-        .border-hack { border-color: #00ff41; }
-        .panel { background: #111111; border: 1px solid #222222; }
-        .panel:hover { border-color: #00ff4144; }
+        ::selection { background: rgba(99,102,241,0.3); color: #6366f1; }
+        body { font-family: 'Inter', sans-serif; background: #030712; color: #f4f4f5; }
+        .glass { background: rgba(15,15,19,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); }
+        .card { background: linear-gradient(145deg, #0f0f13 0%, #18181b 100%); border: 1px solid rgba(255,255,255,0.06); }
         .toast { transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1); }
         .toast.show { transform: translateX(0); }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #00ff41 !important; box-shadow: 0 0 0 1px #00ff4133; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #6366f1 !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
     </style>
 </head>
 <body class="antialiased">
 
 <!-- ===== LOGIN SCREEN ===== -->
 <div id="login-screen" class="min-h-screen flex items-center justify-center p-6">
-    <div class="panel rounded-lg p-8 w-full max-w-sm">
-        <div class="w-12 h-12 border border-hack/30 rounded-lg flex items-center justify-center mx-auto mb-5"><span class="text-hack text-xl">⌘</span></div>
-        <h1 class="font-mono font-semibold text-lg mb-1 text-white">/// ADMIN_ACCESS</h1>
-        <p class="text-[10px] text-hack/40 mb-6 font-mono">/// RESTRICTED_AREA</p>
+    <div class="glass rounded-2xl p-8 w-full max-w-sm text-center">
+        <div class="w-14 h-14 bg-gradient-to-br from-primary to-purple-500 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20"><i data-lucide="shield" class="w-7 h-7 text-white"></i></div>
+        <h1 class="font-semibold text-xl mb-1 text-white">Staff Access</h1>
+        <p class="text-sm text-zinc-400 mb-6">Area terbatas. Masukkan password.</p>
         <form onsubmit="handleLogin(event)">
-            <input type="password" id="admin-password" class="w-full bg-black border border-hack/20 rounded px-4 py-3 text-sm text-white placeholder-hack/20 font-mono mb-4" placeholder="PASSWORD">
-            <button type="submit" class="w-full bg-hack text-black text-xs font-mono font-medium tracking-wider uppercase py-3 rounded hover:bg-hack/90 transition-colors">./LOGIN</button>
+            <input type="password" id="admin-password" class="w-full bg-dark-800 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-zinc-600 mb-4" placeholder="Password">
+            <button type="submit" class="w-full bg-primary text-white text-sm font-medium py-3.5 rounded-lg hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25">Masuk</button>
         </form>
-        <p id="login-error" class="text-xs text-red-400 mt-3 hidden font-mono">/// ERROR: INVALID_PASSWORD</p>
-        <a href="/" class="inline-block mt-6 text-[10px] text-hack/30 hover:text-hack/60 transition-colors font-mono">← BACK_TO_SITE</a>
+        <p id="login-error" class="text-xs text-red-400 mt-3 hidden">Password salah!</p>
+        <a href="/" class="inline-block mt-6 text-sm text-zinc-500 hover:text-white transition-colors">← Kembali ke Website</a>
     </div>
 </div>
 
 <!-- ===== DASHBOARD SCREEN ===== -->
-<div id="dashboard-screen" class="hidden p-5 md:p-8">
+<div id="dashboard-screen" class="hidden p-6 md:p-10">
     <div class="max-w-6xl mx-auto">
-        <header class="flex justify-between items-center mb-6">
+        <header class="flex justify-between items-center mb-8">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 border border-hack flex items-center justify-center"><span class="text-hack font-bold text-sm">N</span></div>
-                <h1 class="font-mono font-semibold text-base text-white">NEXUO<span class="text-hack/30 text-xs"> // ADMIN_PANEL</span></h1>
+                <div class="w-9 h-9 bg-gradient-to-br from-primary to-purple-500 rounded-lg flex items-center justify-center shadow-lg shadow-primary/20"><span class="text-white font-bold text-sm">N</span></div>
+                <h1 class="font-semibold text-xl text-white">NEXUO<span class="text-zinc-500 font-light text-sm ml-2">// ADMIN</span></h1>
             </div>
-            <div class="flex items-center gap-2">
-                <a href="/" class="text-[10px] text-hack/30 hover:text-hack border border-hack/10 px-3 py-1.5 rounded transition-colors font-mono">SITE</a>
-                <button onclick="handleLogout()" class="text-[10px] text-red-400 hover:text-red-300 border border-red-500/20 px-3 py-1.5 rounded transition-colors font-mono">./LOGOUT</button>
+            <div class="flex items-center gap-3">
+                <a href="/" class="text-sm text-zinc-500 hover:text-white border border-white/10 px-4 py-2 rounded-lg transition-colors">← Website</a>
+                <button onclick="handleLogout()" class="text-sm text-red-400 hover:text-red-300 border border-red-500/20 px-4 py-2 rounded-lg transition-colors">Logout</button>
             </div>
         </header>
 
-        <div class="flex gap-4 mb-6 border-b border-hack/10 pb-2">
-            <button class="tab-btn text-xs font-mono font-medium text-hack border-b-2 border-hack pb-2 px-2" onclick="switchTab('orders')">&gt;_ORDERS</button>
-            <button class="tab-btn text-xs font-mono font-medium text-hack/30 border-b-2 border-transparent pb-2 px-2 hover:text-hack/60" onclick="switchTab('products')">&gt;_PRODUCTS</button>
-            <button class="tab-btn text-xs font-mono font-medium text-hack/30 border-b-2 border-transparent pb-2 px-2 hover:text-hack/60" onclick="switchTab('stats')">&gt;_STATS</button>
+        <div class="flex gap-6 mb-8 border-b border-white/5 pb-3">
+            <button class="tab-btn text-sm font-medium text-primary border-b-2 border-primary pb-2 px-2" onclick="switchTab('orders')">Pesanan</button>
+            <button class="tab-btn text-sm font-medium text-zinc-500 border-b-2 border-transparent pb-2 px-2 hover:text-white" onclick="switchTab('products')">Produk</button>
+            <button class="tab-btn text-sm font-medium text-zinc-500 border-b-2 border-transparent pb-2 px-2 hover:text-white" onclick="switchTab('stats')">Statistik</button>
         </div>
 
         <!-- TAB ORDERS -->
         <div id="tab-orders">
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-                <div class="panel rounded p-3"><p class="text-[10px] text-hack/40 uppercase tracking-wider font-mono">REVENUE_TOTAL</p><p class="font-mono text-lg text-hack mt-1" id="statRevenue">Rp 0</p></div>
-                <div class="panel rounded p-3"><p class="text-[10px] text-hack/40 uppercase tracking-wider font-mono">TOTAL_ORDERS</p><p class="font-mono text-lg mt-1 text-white" id="statTotal">0</p></div>
-                <div class="panel rounded p-3"><p class="text-[10px] text-hack/40 uppercase tracking-wider font-mono">PENDING</p><p class="font-mono text-lg text-yellow-400 mt-1" id="statPending">0</p></div>
-                <div class="panel rounded p-3"><p class="text-[10px] text-hack/40 uppercase tracking-wider font-mono">REJECTED</p><p class="font-mono text-lg text-red-400 mt-1" id="statRejected">0</p></div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="card rounded-xl p-4"><p class="text-xs text-zinc-500 uppercase tracking-wider">Revenue</p><p class="text-xl text-primary mt-1 font-semibold" id="statRevenue">Rp 0</p></div>
+                <div class="card rounded-xl p-4"><p class="text-xs text-zinc-500 uppercase tracking-wider">Orders</p><p class="text-xl mt-1 font-semibold text-white" id="statTotal">0</p></div>
+                <div class="card rounded-xl p-4"><p class="text-xs text-zinc-500 uppercase tracking-wider">Pending</p><p class="text-xl text-yellow-400 mt-1 font-semibold" id="statPending">0</p></div>
+                <div class="card rounded-xl p-4"><p class="text-xs text-zinc-500 uppercase tracking-wider">Rejected</p><p class="text-xl text-red-400 mt-1 font-semibold" id="statRejected">0</p></div>
             </div>
+            <div class="card rounded-xl p-5 mb-8 h-64"><canvas id="adminChart"></canvas></div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead><tr class="border-b border-hack/10 text-[10px] text-hack/40 uppercase tracking-wider font-mono"><th class="p-2">ORDER_ID</th><th class="p-2">PRODUCT</th><th class="p-2">AMOUNT</th><th class="p-2">EMAIL</th><th class="p-2">PROOF</th><th class="p-2">STATUS</th><th class="p-2 text-right">ACTION</th></tr></thead>
-                    <tbody id="ordersTableBody" class="text-xs font-mono"></tbody>
+                    <thead><tr class="border-b border-white/5 text-xs text-zinc-500 uppercase tracking-wider"><th class="p-3">Order ID</th><th class="p-3">Produk</th><th class="p-3">Total</th><th class="p-3">Email</th><th class="p-3">Bukti</th><th class="p-3">Status</th><th class="p-3 text-right">Aksi</th></tr></thead>
+                    <tbody id="ordersTableBody" class="text-sm"></tbody>
                 </table>
             </div>
         </div>
 
         <!-- TAB PRODUCTS -->
         <div id="tab-products" class="hidden">
-            <div class="panel rounded p-5 mb-6">
-                <h3 class="font-mono font-semibold text-sm mb-4 text-white">/// ADD_NEW_PRODUCT</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                    <input type="text" id="pName" placeholder="Product Name (e.g. NEXUO Sniper Pro)" value="NEXUO Sniper Pro" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono">
-                    <input type="text" id="pPrice" placeholder="Price (e.g. 249000)" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono">
-                    <select id="pCategory" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white font-mono">
+            <div class="card rounded-xl p-6 mb-8">
+                <h3 class="font-semibold mb-4 text-white">Tambah Produk Baru</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <input type="text" id="pName" placeholder="Nama Produk (e.g. NEXUO Sniper Pro)" value="NEXUO Sniper Pro" class="bg-dark-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-zinc-600">
+                    <input type="text" id="pPrice" placeholder="Harga (contoh: 249000)" class="bg-dark-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-zinc-600">
+                    <select id="pCategory" class="bg-dark-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white">
                         <option value="Pine Script">Pine Script (TradingView)</option>
                         <option value="MQL5">MQL5 (MetaTrader 5)</option>
                         <option value="Python AI">Python AI</option>
@@ -92,43 +90,43 @@
                         <option value="EA/ Robot">EA/ Robot</option>
                     </select>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <input type="text" id="pFeatures" placeholder="Features (comma separated: Auto SL, TP Levels, Dashboard, Confluence Filter)" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono">
-                    <input type="text" id="pLink" placeholder="Input Manual di Admin Nanti" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <input type="text" id="pFeatures" placeholder="Fitur (Auto SL, TP Levels, Dashboard, Confluence Filter)" class="bg-dark-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-zinc-600">
+                    <input type="text" id="pLink" placeholder="Input Manual di Admin Nanti" class="bg-dark-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-zinc-600">
                 </div>
                 <div class="mb-4">
-                    <textarea id="pDesc" placeholder="Description - Penjelasan indikator, fitur utama, dll" class="bg-black border border-hack/20 rounded px-3 py-2 text-xs text-white placeholder-hack/20 font-mono h-16 w-full"></textarea>
+                    <textarea id="pDesc" placeholder="Deskripsi Produk" class="bg-dark-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-zinc-600 h-20 w-full"></textarea>
                 </div>
-                <button onclick="addProduct()" class="bg-hack text-black text-xs font-mono font-semibold tracking-wider uppercase px-5 py-2 rounded hover:bg-hack/90 transition-colors">./ADD_PRODUCT</button>
+                <button onclick="addProduct()" class="bg-primary text-white text-sm font-medium px-6 py-2.5 rounded-lg hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25">Tambah Produk</button>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead><tr class="border-b border-hack/10 text-[10px] text-hack/40 uppercase tracking-wider font-mono"><th class="p-2">ID</th><th class="p-2">NAME</th><th class="p-2">PRICE</th><th class="p-2">CATEGORY</th><th class="p-2 text-right">ACTION</th></tr></thead>
-                    <tbody id="productsTableBody" class="text-xs font-mono"></tbody>
+                    <thead><tr class="border-b border-white/5 text-xs text-zinc-500 uppercase tracking-wider"><th class="p-3">ID</th><th class="p-3">Nama</th><th class="p-3">Harga</th><th class="p-3">Kategori</th><th class="p-3 text-right">Aksi</th></tr></thead>
+                    <tbody id="productsTableBody" class="text-sm"></tbody>
                 </table>
             </div>
         </div>
 
         <!-- TAB STATS -->
         <div id="tab-stats" class="hidden">
-            <div class="grid md:grid-cols-2 gap-4 mb-6">
-                <div class="panel rounded p-4">
-                    <p class="text-[10px] text-hack/40 uppercase tracking-wider font-mono mb-3">/// REVENUE_BY_PRODUCT</p>
-                    <div class="h-48"><canvas id="revenueChart"></canvas></div>
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div class="card rounded-xl p-5">
+                    <p class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Revenue by Product</p>
+                    <div class="h-52"><canvas id="revenueChart"></canvas></div>
                 </div>
-                <div class="panel rounded p-4">
-                    <p class="text-[10px] text-hack/40 uppercase tracking-wider font-mono mb-3">/// ORDERS_STATUS_DISTRIBUTION</p>
-                    <div class="h-48"><canvas id="statusPieChart"></canvas></div>
+                <div class="card rounded-xl p-5">
+                    <p class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Orders Status</p>
+                    <div class="h-52"><canvas id="statusPieChart"></canvas></div>
                 </div>
             </div>
-            <div class="grid md:grid-cols-2 gap-4">
-                <div class="panel rounded p-4">
-                    <p class="text-[10px] text-hack/40 uppercase tracking-wider font-mono mb-3">/// MONTHLY_TREND</p>
-                    <div class="h-48"><canvas id="trendChart"></canvas></div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="card rounded-xl p-5">
+                    <p class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Monthly Trend</p>
+                    <div class="h-52"><canvas id="trendChart"></canvas></div>
                 </div>
-                <div class="panel rounded p-4">
-                    <p class="text-[10px] text-hack/40 uppercase tracking-wider font-mono mb-3">/// TOP_PRODUCTS</p>
-                    <div class="h-48"><canvas id="topProductsChart"></canvas></div>
+                <div class="card rounded-xl p-5">
+                    <p class="text-xs text-zinc-500 uppercase tracking-wider mb-4">Top Products</p>
+                    <div class="h-52"><canvas id="topProductsChart"></canvas></div>
                 </div>
             </div>
         </div>
@@ -137,13 +135,13 @@
 
 <!-- Modal Bukti Bayar -->
 <div id="proof-modal" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden');this.classList.remove('flex')">
-    <img id="proof-img" src="" class="max-w-full max-h-full rounded border border-hack/20">
+    <img id="proof-img" src="" class="max-w-full max-h-full rounded-lg border border-white/10">
 </div>
 <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3"></div>
 
 <script>
     const API_BASE = window.location.origin;
-    let myChart1 = null, myChart2 = null, myChart3 = null, myChart4 = null;
+    let myChart = null, myChart1 = null, myChart2 = null, myChart3 = null, myChart4 = null;
     const ADMIN_PASSWORD = 'nexuo2026';
 
     function checkAuth() {
@@ -176,83 +174,140 @@
     }
 
     function switchTab(tab) {
-        document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('text-hack','border-hack'); b.classList.add('text-hack/30','border-transparent'); });
-        event.target.classList.add('text-hack','border-hack'); event.target.classList.remove('text-hack/30','border-transparent');
+        document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('text-primary','border-primary'); b.classList.add('text-zinc-500','border-transparent'); });
+        event.target.classList.add('text-primary','border-primary'); event.target.classList.remove('text-zinc-500','border-transparent');
         document.getElementById('tab-orders').classList.toggle('hidden', tab !== 'orders');
         document.getElementById('tab-products').classList.toggle('hidden', tab !== 'products');
         document.getElementById('tab-stats').classList.toggle('hidden', tab !== 'stats');
-        if(tab === 'orders') loadOrders(); 
-        else if(tab === 'products') loadProducts();
-        else if(tab === 'stats') loadStats();
+        if(tab === 'orders') loadOrders(); else if(tab === 'products') loadProducts(); else if(tab === 'stats') loadStats();
     }
 
     async function loadOrders() {
-        const res = await fetch(`${API_BASE}/api/orders`); const orders = await res.json();
-        const approved = orders.filter(o => o.status === 'approved'); const pending = orders.filter(o => o.status === 'pending'); const rejected = orders.filter(o => o.status === 'rejected');
-        const rev = approved.reduce((s,o) => s + (parseInt(o.price) || 0), 0);
-        document.getElementById('statRevenue').textContent = 'Rp ' + rev.toLocaleString('id-ID');
-        document.getElementById('statTotal').textContent = orders.length; document.getElementById('statPending').textContent = pending.length; document.getElementById('statRejected').textContent = rejected.length;
+        try {
+            const res = await fetch(`${API_BASE}/api/orders`);
+            if (!res.ok) throw new Error('Failed to fetch orders');
+            const orders = await res.json();
+            
+            const approved = orders.filter(o => o.status === 'approved');
+            const pending = orders.filter(o => o.status === 'pending');
+            const rejected = orders.filter(o => o.status === 'rejected');
+            const rev = approved.reduce((s,o) => s + (parseInt(o.price) || 0), 0);
+            
+            document.getElementById('statRevenue').textContent = 'Rp ' + rev.toLocaleString('id-ID');
+            document.getElementById('statTotal').textContent = orders.length;
+            document.getElementById('statPending').textContent = pending.length;
+            document.getElementById('statRejected').textContent = rejected.length;
 
-        document.getElementById('ordersTableBody').innerHTML = orders.map(o => {
-            let st = o.status === 'pending' ? '<span class="text-[10px] bg-yellow-400/10 text-yellow-400 px-2 py-0.5 rounded">PENDING</span>' : o.status === 'approved' ? '<span class="text-[10px] bg-hack/10 text-hack px-2 py-0.5 rounded">APPROVED</span>' : '<span class="text-[10px] bg-red-400/10 text-red-400 px-2 py-0.5 rounded">REJECTED</span>';
-            let act = o.status === 'pending' ? `<button onclick="updStatus('${o.order_id}','approved')" class="text-[10px] bg-hack/10 text-hack px-2 py-1 rounded hover:bg-hack/20 mr-1">✓</button><button onclick="updStatus('${o.order_id}','rejected')" class="text-[10px] bg-red-500/10 text-red-400 px-2 py-1 rounded hover:bg-red-500/20">✕</button>` : '-';
-            let proof = o.proof ? `<button onclick="viewProof('${o.proof}')" class="text-[10px] text-hack hover:underline">VIEW</button>` : '-';
-            return `<tr class="border-b border-hack/5 hover:bg-hack/[0.02]"><td class="p-2 font-mono text-[10px] text-hack/50">${o.order_id}</td><td class="p-2 text-white">${o.product_name}</td><td class="p-2 font-mono">${(parseInt(o.price) || 0).toLocaleString('id-ID')}</td><td class="p-2 text-hack/60">${o.email}</td><td class="p-2">${proof}</td><td class="p-2">${st}</td><td class="p-2 text-right">${act}</td></tr>`;
-        }).join('');
+            document.getElementById('ordersTableBody').innerHTML = orders.map(o => {
+                let st = o.status === 'pending' ? '<span class="text-[10px] bg-yellow-400/10 text-yellow-400 px-2 py-0.5 rounded">Pending</span>' : o.status === 'approved' ? '<span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded">Approved</span>' : '<span class="text-[10px] bg-red-400/10 text-red-400 px-2 py-0.5 rounded">Rejected</span>';
+                let act = o.status === 'pending' ? `<button onclick="updStatus('${o.order_id}','approved')" class="text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded hover:bg-green-500/20 mr-1">✓ Approve</button><button onclick="updStatus('${o.order_id}','rejected')" class="text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded hover:bg-red-500/20">✕ Reject</button>` : '-';
+                let proof = o.proof ? `<button onclick="viewProof('${o.proof}')" class="text-xs text-primary hover:underline">Lihat</button>` : '-';
+                return `<tr class="border-b border-white/5 hover:bg-white/[0.02]"><td class="p-3 text-xs text-zinc-500">${o.order_id}</td><td class="p-3 text-white">${o.product_name}</td><td class="p-3 text-white">Rp ${(parseInt(o.price) || 0).toLocaleString('id-ID')}</td><td class="p-3 text-zinc-400">${o.email}</td><td class="p-3">${proof}</td><td class="p-3">${st}</td><td class="p-3 text-right">${act}</td></tr>`;
+            }).join('');
+
+            // Simple bar chart for orders by product
+            const ctx = document.getElementById('adminChart').getContext('2d');
+            const names = [...new Set(orders.map(o => o.product_name))];
+            if(myChart) myChart.destroy();
+            myChart = new Chart(ctx, { 
+                type: 'bar', 
+                data: { 
+                    labels: names, 
+                    datasets: [{
+                        label: 'Orders',
+                        data: names.map(n => orders.filter(o => o.product_name === n).length),
+                        backgroundColor: 'rgba(99,102,241,0.6)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1
+                    }]
+                }, 
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: '#27272a' }, ticks: { color: '#71717a' } },
+                        x: { grid: { display: false }, ticks: { color: '#71717a' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading orders:', err);
+            showToast('Gagal memuat pesanan', 'error');
+        }
     }
 
     function viewProof(url) { document.getElementById('proof-img').src = url; const m = document.getElementById('proof-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
-    async function updStatus(id, status) { await fetch(`${API_BASE}/api/orders`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({order_id: id, status}) }); showToast(`/// ORDER_${status.toUpperCase()}`); loadOrders(); }
+    async function updStatus(id, status) { 
+        try {
+            await fetch(`${API_BASE}/api/orders`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({order_id: id, status}) }); 
+            showToast(`Order ${status}! Email terkirim.`); 
+            loadOrders(); 
+        } catch (err) {
+            showToast('Gagal update status', 'error');
+        }
+    }
 
     async function loadProducts() {
-        const res = await fetch(`${API_BASE}/api/products`); const prods = await res.json();
-        document.getElementById('productsTableBody').innerHTML = prods.map(p => 
-            `<tr class="border-b border-hack/5 hover:bg-hack/[0.02]">
-                <td class="p-2 text-hack/40">${p.id}</td>
-                <td class="p-2 text-white">${p.name}</td>
-                <td class="p-2 font-mono">${(parseInt(p.price) || 0).toLocaleString('id-ID')}</td>
-                <td class="p-2 text-hack/60">${p.category || '-'}</td>
-                <td class="p-2 text-right">
-                    <button onclick="delProduct(${p.id})" class="text-[10px] bg-red-500/10 text-red-400 px-2 py-1 rounded hover:bg-red-500/20">DEL</button>
-                </td>
-            </tr>`
-        ).join('');
+        try {
+            const res = await fetch(`${API_BASE}/api/products`);
+            if (!res.ok) throw new Error('Failed to fetch products');
+            const prods = await res.json();
+            document.getElementById('productsTableBody').innerHTML = prods.map(p => 
+                `<tr class="border-b border-white/5 hover:bg-white/[0.02]">
+                    <td class="p-3 text-zinc-500">${p.id}</td>
+                    <td class="p-3 text-white">${p.name}</td>
+                    <td class="p-3 text-white">Rp ${(parseInt(p.price) || 0).toLocaleString('id-ID')}</td>
+                    <td class="p-3 text-zinc-400">${p.category || '-'}</td>
+                    <td class="p-3 text-right"><button onclick="delProduct(${p.id})" class="text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded hover:bg-red-500/20">Hapus</button></td>
+                </tr>`
+            ).join('');
+        } catch (err) {
+            console.error('Error loading products:', err);
+            showToast('Gagal memuat produk', 'error');
+        }
     }
 
     async function addProduct() {
-        const name = document.getElementById('pName').value;
-        const price = document.getElementById('pPrice').value;
-        const category = document.getElementById('pCategory').value;
-        const features = document.getElementById('pFeatures').value;
-        const download_link = document.getElementById('pLink').value;
+        const name = document.getElementById('pName').value; 
+        const price = document.getElementById('pPrice').value; 
+        const category = document.getElementById('pCategory').value; 
+        const features = document.getElementById('pFeatures').value; 
+        const download_link = document.getElementById('pLink').value; 
         const description = document.getElementById('pDesc').value;
         
-        if(!name || !price) return showToast('/// ERROR: Name & Price required', 'error');
+        if(!name || !price) return showToast('Nama & Harga wajib', 'error');
         
-        await fetch(`${API_BASE}/api/products`, { 
-            method: 'POST', 
-            headers: {'Content-Type':'application/json'}, 
-            body: JSON.stringify({
-                name, 
-                price, 
-                category, 
-                features, 
-                download_link, 
-                description
-            })
-        });
-        
-        document.getElementById('pName').value = 'NEXUO Sniper Pro';
-        document.getElementById('pPrice').value = '';
-        document.getElementById('pCategory').value = 'Pine Script';
-        document.getElementById('pFeatures').value = '';
-        document.getElementById('pLink').value = '';
-        document.getElementById('pDesc').value = '';
-        
-        showToast('/// SUCCESS: Product added'); loadProducts();
+        try {
+            await fetch(`${API_BASE}/api/products`, { 
+                method: 'POST', 
+                headers: {'Content-Type':'application/json'}, 
+                body: JSON.stringify({name, price, category, features, download_link, description}) 
+            });
+            document.getElementById('pName').value = 'NEXUO Sniper Pro';
+            document.getElementById('pPrice').value = '';
+            document.getElementById('pCategory').value = 'Pine Script';
+            document.getElementById('pFeatures').value = '';
+            document.getElementById('pLink').value = '';
+            document.getElementById('pDesc').value = '';
+            showToast('Produk ditambahkan!'); 
+            loadProducts();
+        } catch (err) {
+            showToast('Gagal menambah produk', 'error');
+        }
     }
 
-    async function delProduct(id) { if(confirm('/// DELETE_PRODUCT?')) { await fetch(`${API_BASE}/api/products`, { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({id}) }); showToast('/// DONE: Deleted'); loadProducts(); } }
+    async function delProduct(id) { 
+        if(confirm('Hapus produk ini?')) { 
+            try {
+                await fetch(`${API_BASE}/api/products`, { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({id}) }); 
+                showToast('Dihapus'); 
+                loadProducts(); 
+            } catch (err) {
+                showToast('Gagal menghapus', 'error');
+            }
+        } 
+    }
 
     async function loadStats() {
         const res = await fetch(`${API_BASE}/api/orders`); const orders = await res.json();
@@ -265,14 +320,14 @@
         
         const ctx1 = document.getElementById('revenueChart').getContext('2d');
         if(myChart1) myChart1.destroy();
-        myChart1 = new Chart(ctx1, { type: 'bar', data: { labels: prodLabels, datasets: [{ label: 'Revenue (Rp)', data: prodValues, backgroundColor: '#00ff4180', borderColor: '#00ff41', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#222' }, ticks: { color: '#666' } }, x: { grid: { display: false }, ticks: { color: '#666', font: { size: 10 } } } }, plugins: { legend: { display: false } } } });
+        myChart1 = new Chart(ctx1, { type: 'bar', data: { labels: prodLabels, datasets: [{ label: 'Revenue (Rp)', data: prodValues, backgroundColor: 'rgba(99,102,241,0.6)', borderColor: '#6366f1', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#27272a' }, ticks: { color: '#71717a' } }, x: { grid: { display: false }, ticks: { color: '#71717a' } } }, plugins: { legend: { display: false } } } });
 
         // Status pie
         const statusCount = { approved: 0, pending: 0, rejected: 0 };
         orders.forEach(o => { if(statusCount[o.status] !== undefined) statusCount[o.status]++; });
         const ctx2 = document.getElementById('statusPieChart').getContext('2d');
         if(myChart2) myChart2.destroy();
-        myChart2 = new Chart(ctx2, { type: 'doughnut', data: { labels: ['APPROVED', 'PENDING', 'REJECTED'], datasets: [{ data: [statusCount.approved, statusCount.pending, statusCount.rejected], backgroundColor: ['#00ff4180', '#ffaa0080', '#ff444480'], borderColor: ['#00ff41', '#ffaa00', '#ff4444'], borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#666', font: { size: 10 } } } } } });
+        myChart2 = new Chart(ctx2, { type: 'doughnut', data: { labels: ['Approved', 'Pending', 'Rejected'], datasets: [{ data: [statusCount.approved, statusCount.pending, statusCount.rejected], backgroundColor: ['#6366f1', '#f59e0b', '#ef4444'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#71717a' } } } } });
 
         // Monthly trend
         const monthlyData = {};
@@ -282,7 +337,7 @@
         });
         const ctx3 = document.getElementById('trendChart').getContext('2d');
         if(myChart3) myChart3.destroy();
-        myChart3 = new Chart(ctx3, { type: 'line', data: { labels: Object.keys(monthlyData), datasets: [{ label: 'Orders', data: Object.values(monthlyData), borderColor: '#00ff41', backgroundColor: '#00ff4120', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#222' }, ticks: { color: '#666' } }, x: { grid: { display: false }, ticks: { color: '#666', font: { size: 10 } } } }, plugins: { legend: { display: false } } } });
+        myChart3 = new Chart(ctx3, { type: 'line', data: { labels: Object.keys(monthlyData), datasets: [{ label: 'Orders', data: Object.values(monthlyData), borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#27272a' }, ticks: { color: '#71717a' } }, x: { grid: { display: false }, ticks: { color: '#71717a' } } }, plugins: { legend: { display: false } } } });
 
         // Top products
         const topProducts = {};
@@ -290,10 +345,18 @@
         const sortedProds = Object.entries(topProducts).sort((a,b) => b[1] - a[1]).slice(0, 5);
         const ctx4 = document.getElementById('topProductsChart').getContext('2d');
         if(myChart4) myChart4.destroy();
-        myChart4 = new Chart(ctx4, { type: 'bar', data: { labels: sortedProds.map(p => p[0]), datasets: [{ label: 'Orders', data: sortedProds.map(p => p[1]), backgroundColor: '#00ff4180', borderColor: '#00ff41', borderWidth: 1 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { color: '#222' }, ticks: { color: '#666' } }, y: { grid: { display: false }, ticks: { color: '#666', font: { size: 10 } } } }, plugins: { legend: { display: false } } } });
+        myChart4 = new Chart(ctx4, { type: 'bar', data: { labels: sortedProds.map(p => p[0]), datasets: [{ label: 'Orders', data: sortedProds.map(p => p[1]), backgroundColor: 'rgba(99,102,241,0.6)', borderColor: '#6366f1', borderWidth: 1 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { color: '#27272a' }, ticks: { color: '#71717a' } }, y: { grid: { display: false }, ticks: { color: '#71717a' } } }, plugins: { legend: { display: false } } } });
     }
 
-    function showToast(msg, type='success') { const c = document.getElementById('toast-container'); const t = document.createElement('div'); t.className = `toast panel rounded px-4 py-2.5 text-xs font-mono ${type === 'error' ? 'border-red-500/30' : 'border-hack/20'}`; t.textContent = msg; c.appendChild(t); requestAnimationFrame(() => t.classList.add('show')); setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000); }
+    function showToast(msg, type='success') { 
+        const c = document.getElementById('toast-container'); 
+        const t = document.createElement('div'); 
+        t.className = `toast glass rounded-xl px-4 py-3 text-sm ${type === 'error' ? 'border-red-500/30 text-red-400' : 'border-primary/20 text-white'}`; 
+        t.textContent = msg; 
+        c.appendChild(t); 
+        requestAnimationFrame(() => t.classList.add('show')); 
+        setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000); 
+    }
 
     checkAuth();
 </script>

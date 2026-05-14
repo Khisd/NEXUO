@@ -1,293 +1,732 @@
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUO — Premium TradingView Indicators</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>NEXUO | Decision Infrastructure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = { theme: { extend: { fontFamily: { mono: ['JetBrains Mono','monospace'] }, colors: { hack: { green: '#00ff41', greenDim: '#00ff4133', dark: '#0a0a0a', panel: '#111111', border: '#222222', text: '#e0e0e0', muted: '#666666' } } } } }
-    </script>
     <style>
-        ::selection { background: rgba(0,255,65,0.2); color: #00ff41; }
-        body { font-family: 'JetBrains Mono', monospace; background: #0a0a0a; color: #e0e0e0; }
-        .font-hack { color: #00ff41; }
-        .text-hack { color: #00ff41; }
-        .bg-hack { background-color: #00ff41; }
-        .border-hack { border-color: #00ff41; }
-        @keyframes reveal { from { opacity:0; transform:translateY(20px); filter:blur(8px); } to { opacity:1; transform:translateY(0); filter:blur(0); } }
-        .reveal { animation: reveal 0.6s cubic-bezier(0.2,0.8,0.2,1) both; }
-        .reveal-d1 { animation-delay: 0.1s; } .reveal-d2 { animation-delay: 0.2s; } .reveal-d3 { animation-delay: 0.3s; }
-        @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
-        .cursor-blink { animation: blink 1s infinite; }
-        @keyframes scanline { 0% { transform:translateY(-100%); } 100% { transform:translateY(100%); } }
-        .scanline::after { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(transparent,#00ff4122,transparent); animation:scanline 3s linear infinite; }
-        .panel { background: #111111; border: 1px solid #222222; }
-        .panel:hover { border-color: #00ff4144; }
-        .toast { transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.2,0.8,0.2,1); }
-        .toast.show { transform: translateX(0); }
-        input:focus, textarea:focus { outline: none; border-color: #00ff41 !important; box-shadow: 0 0 0 1px #00ff4133; }
-        .step-form { display: none; } .step-form.active { display: block; }
-        .matrix-bg { background: repeating-linear-gradient(0deg, transparent, transparent 2px, #00ff4108 2px, #00ff4108 4px); }
+        :root {
+            --bg-base: #050505;
+            --bg-surface: #0a0a0a;
+            --bg-elevated: #121212;
+            --bg-card: #0e0e0e;
+            --border-subtle: #1a1a1a;
+            --border-default: #2a2a2a;
+            --border-hover: #444444;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #52525b;
+            --accent: #ffffff;
+            --accent-dim: rgba(255,255,255,0.05);
+            --green: #00dc82;
+            --green-dim: rgba(0,220,130,0.1);
+            --red: #f43f5e;
+            --red-dim: rgba(244,63,94,0.1);
+            --blue: #3b82f6;
+            --font-sans: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            background: var(--bg-base); color: var(--text-primary);
+            font-family: var(--font-sans); -webkit-font-smoothing: antialiased;
+            line-height: 1.6; overflow-x: hidden; font-size: 15px;
+        }
+        a { text-decoration: none; color: inherit; transition: 0.2s; }
+        button, input, select, textarea { font-family: inherit; }
+        .mono { font-family: var(--font-mono); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -10; pointer-events: none; }
+        .bg-grid {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px; z-index: -9; mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 80%);
+        }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 14px;
+            cursor: pointer; border: 1px solid transparent; transition: all 0.2s;
+        }
+        .btn-white { background: var(--text-primary); color: var(--bg-base); }
+        .btn-white:hover { background: #e4e4e7; transform: translateY(-1px); }
+        .btn-ghost { background: transparent; border: 1px solid var(--border-default); color: var(--text-primary); }
+        .btn-ghost:hover { border-color: var(--text-primary); background: var(--accent-dim); }
+        .btn-green { background: var(--green); color: #000; border: none; }
+        .btn-green:hover { box-shadow: 0 0 20px rgba(0,220,130,0.2); }
+        .btn-red { background: rgba(244,63,94,0.1); color: var(--red); border: 1px solid var(--red); }
+        .btn-red:hover { background: var(--red); color: #fff; }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+        header {
+            position: fixed; top: 0; width: 100%; z-index: 100;
+            padding: 0 32px; height: 70px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid transparent; transition: 0.3s;
+        }
+        header.scrolled { background: rgba(5,5,5,0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-subtle); }
+        .logo { font-size: 20px; font-weight: 800; letter-spacing: -1px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo-box { width: 24px; height: 24px; background: var(--text-primary); border-radius: 4px; }
+        nav { display: flex; gap: 24px; }
+        nav a { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+        nav a:hover { color: var(--text-primary); }
+
+        .hero { padding: 160px 0 80px; text-align: center; max-width: 800px; margin: 0 auto; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 100px; border: 1px solid var(--border-default); font-size: 12px; color: var(--text-secondary); margin-bottom: 24px; }
+        .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 24px; }
+        .hero p { font-size: 18px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 40px; }
+
+        .feature-benefits { display: flex; justify-content: center; gap: 24px; margin-bottom: 40px; flex-wrap: wrap; }
+        .benefit-item { background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 12px 20px; border-radius: 8px; font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+        .check-icon { color: var(--green); }
+
+        .steps-section { padding: 80px 0; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
+        .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-top: 40px; }
+        .step-card { text-align: center; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border-subtle); }
+        .step-num { width: 40px; height: 40px; background: var(--border-default); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: 700; font-family: var(--font-mono); }
+        .step-card h4 { margin-bottom: 8px; font-size: 16px; }
+        .step-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; padding: 60px 0; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; transition: 0.3s; }
+        .card:hover { border-color: var(--border-default); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 16px; align-items: center; }
+        .tag { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 4px 8px; background: var(--border-subtle); border-radius: 4px; letter-spacing: 0.5px; }
+        .price { font-size: 24px; font-weight: 700; font-family: var(--font-mono); }
+        .card h3 { font-size: 18px; margin-bottom: 8px; }
+        .card p { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; flex-grow: 1; line-height: 1.6; }
+        .feature-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+        .feature { font-size: 11px; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius: 4px; color: var(--text-muted); border: 1px solid var(--border-subtle); }
+
+        .faq-section { padding: 80px 0; }
+        .faq-item { border-bottom: 1px solid var(--border-subtle); padding: 24px 0; }
+        .faq-question { font-size: 16px; font-weight: 600; margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between; }
+        .faq-answer { font-size: 14px; color: var(--text-muted); line-height: 1.6; display: none; margin-top: 8px; }
+        .faq-item.active .faq-answer { display: block; }
+        .faq-item.active .faq-question { color: var(--text-primary); }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-surface); border: 1px solid var(--border-default); width: 100%; max-width: 500px; border-radius: 12px; padding: 32px; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); animation: modalIn 0.3s ease; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .close-modal { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px; }
+        .close-modal:hover { color: var(--text-primary); }
+
+        .qr-section { text-align: center; margin: 24px 0; padding: 24px; background: #fff; border-radius: 8px; }
+        .qr-section img { width: 180px; height: 180px; display: block; margin: 0 auto 16px; mix-blend-mode: multiply; }
+        .qr-note { font-size: 11px; color: #000; opacity: 0.6; margin-top: 8px; }
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+        .input-group input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-default); color: var(--text-primary); padding: 12px; border-radius: 6px; outline: none; }
+        .input-group input:focus { border-color: var(--text-primary); }
+
+        .file-upload { border: 1px dashed var(--border-default); padding: 20px; text-align: center; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13px; color: var(--text-secondary); }
+        .file-upload:hover { border-color: var(--text-primary); background: var(--accent-dim); }
+
+        .admin-view { display: none; padding-top: 80px; min-height: 100vh; }
+        .admin-view.active { display: block; }
+        .storefront-view.hidden { display: none; }
+
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 20px; border-radius: 8px; }
+        .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .stat-value { font-size: 24px; font-weight: 700; font-family: var(--font-mono); }
+
+        .table-container { overflow-x: auto; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-card); }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 800px; }
+        th { padding: 16px; font-size: 12px; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border-subtle); background: var(--bg-elevated); }
+        td { padding: 16px; border-bottom: 1px solid var(--border-subtle); font-size: 14px; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--bg-elevated); }
+
+        .status-pill { padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .status-pending { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+        .status-approved { background: var(--green-dim); color: var(--green); }
+        .status-rejected { background: var(--red-dim); color: var(--red); }
+
+        .toast { position: fixed; bottom: 30px; right: 30px; background: var(--bg-elevated); border: 1px solid var(--border-default); padding: 16px 24px; border-radius: 8px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; transform: translateY(100px); opacity: 0; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-icon { font-size: 18px; }
+        .toast.success .toast-icon { color: var(--green); }
+        .toast.error .toast-icon { color: var(--red); }
+
+        @media (max-width: 768px) {
+            header { padding: 0 20px; }
+            .hero h1 { font-size: 2.5rem; }
+            .grid { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .nav-links { display: none; }
+        }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-<div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3"></div>
+<canvas id="bg-canvas"></canvas>
+<div class="bg-grid"></div>
 
-<!-- NAVBAR -->
-<nav class="sticky top-0 z-50 panel border-b border-hack/20 backdrop-blur-sm">
-    <div class="max-w-screen-2xl mx-auto px-6 h-14 flex items-center justify-between">
-        <a href="#" class="flex items-center gap-2">
-            <div class="w-8 h-8 border border-hack flex items-center justify-center"><span class="text-hack font-bold text-sm">N</span></div>
-            <span class="font-mono font-semibold text-sm tracking-widest text-white">NEXUO</span>
-            <span class="text-[10px] text-hack/50 ml-2">// SYSTEM_READY</span>
-        </a>
-        <div class="hidden md:flex items-center gap-6 text-xs">
-            <a href="#indicators" class="text-hack/60 hover:text-hack transition-colors">&gt;_INDICATORS</a>
-            <a href="#features" class="text-hack/60 hover:text-hack transition-colors">&gt;_FEATURES</a>
-            <a href="#stats" class="text-hack/60 hover:text-hack transition-colors">&gt;_STATS</a>
+<!-- ================= STOREFRONT VIEW ================= -->
+<div class="storefront-view" id="storefrontView">
+    <header id="navbar">
+        <div class="logo" onclick="showStorefront()">
+            <div class="logo-box"></div> NEXUO
         </div>
-    </div>
-</nav>
+        <nav class="nav-links">
+            <a href="#how-it-works">Cara Kerja</a>
+            <a href="#products">Produk</a>
+            <a href="#faq">FAQ</a>
+        </nav>
+        <button class="btn btn-white btn-sm" onclick="document.getElementById('products').scrollIntoView()">Mulai Sekarang</button>
+    </header>
 
-<!-- HERO -->
-<section class="relative overflow-hidden matrix-bg" style="background: radial-gradient(ellipse at top left, #0d1a0d, #0a0a0a, #0a0a0a);">
-    <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-hack/5 rounded-full blur-[100px] pointer-events-none"></div>
-    <div class="max-w-screen-2xl mx-auto px-6 pt-20 pb-16 lg:pt-28 lg:pb-24 text-center">
-        <div class="reveal flex justify-center items-center gap-2 mb-6">
-            <span class="w-2 h-2 bg-hack rounded-full"></span>
-            <span class="text-[10px] font-mono tracking-[0.2em] uppercase text-hack">● ONLINE</span>
+    <section class="hero">
+        <div class="badge">SYSTEM STATUS: OPERATIONAL</div>
+        <h1>Trading Tanpa Emosi,<br>Analisa 24/7.</h1>
+        
+        <div class="feature-benefits">
+            <div class="benefit-item"><span class="check-icon">✓</span> Analisa Otomatis</div>
+            <div class="benefit-item"><span class="check-icon">✓</span> Tanpa Coding</div>
+            <div class="benefit-item"><span class="check-icon">✓</span> Install Mudah</div>
+            <div class="benefit-item"><span class="check-icon">✓</span> Support PDF</div>
         </div>
-        <h1 class="reveal reveal-d1 font-mono font-light text-3xl sm:text-4xl lg:text-5xl tracking-tighter leading-[1.1] mb-6">
-            Trading<span class="text-hack">_Indicators</span>
-        </h1>
-        <p class="reveal reveal-d2 text-sm font-mono text-hack/60 leading-relaxed max-w-lg mx-auto mb-8">
-            /// Premium TradingView indicators marketplace<br>
-            /// Zero latency signals for trading edge
+
+        <p>
+            NEXUO menyediakan <strong>Algoritma Trading Otomatis (Robot)</strong> yang dapat Anda install di HP atau Laptop. 
+            Tidak perlu kemampuan teknis, cukup ikuti panduan video kami. Biarkan sistem yang bekerja memantau pasar 
+            XAUUSD, BTC, dan Forex untuk Anda.
         </p>
-        <div class="reveal reveal-d3 flex flex-wrap justify-center gap-3">
-            <a href="#indicators" class="inline-flex items-center gap-2 bg-hack text-black text-xs font-mono font-medium tracking-wider uppercase px-5 py-2.5 rounded hover:bg-hack/90 transition-colors">
-                ./explore
-            </a>
+        <div style="display:flex; gap:16px; justify-content:center;">
+            <button class="btn btn-white" onclick="document.getElementById('products').scrollIntoView()">Lihat Produk</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('how-it-works').scrollIntoView()">Pelajari Dulu</button>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- MARQUEE -->
-<div class="border-y border-hack/10 bg-hack/5 overflow-hidden py-3">
-    <div class="marquee-track flex items-center gap-8 whitespace-nowrap" style="width: max-content;">
-        <span class="text-[10px] font-mono tracking-widest uppercase text-hack/30">/// RSI_PRO</span>
-        <span class="text-[10px] font-mono tracking-widest uppercase text-hack/30">/// MACD_ELITE</span>
-        <span class="text-[10px] font-mono tracking-widest uppercase text-hack/30">/// SCALPX</span>
-        <span class="text-[10px] font-mono tracking-widest uppercase text-hack/30">/// VOLUME_SURGE</span>
-        <span class="text-[10px] font-mono tracking-widest uppercase text-hack/30">/// RSI_PRO</span>
-        <span class="text-[10px] font-mono tracking-widest uppercase text-hack/30">/// MACD_ELITE</span>
-    </div>
-</div>
-
-<!-- INDICATORS -->
-<section id="indicators" class="py-20 relative">
-    <div class="max-w-screen-2xl mx-auto px-6">
-        <div class="text-center mb-12">
-            <span class="text-[10px] font-mono tracking-[0.2em] uppercase text-hack">/// MARKETPLACE</span>
-            <h2 class="font-mono font-light text-2xl sm:text-3xl lg:text-4xl tracking-tighter mt-3 leading-[1.1] text-white">./list_products</h2>
-        </div>
-        <div id="indicator-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="text-center text-hack/30 col-span-3 py-10 font-mono text-sm">/// LOADING_DATA...</div>
-        </div>
-    </div>
-</section>
-
-<!-- FEATURES -->
-<section id="features" class="py-20 border-t border-hack/10">
-    <div class="max-w-screen-2xl mx-auto px-6">
-        <div class="text-center mb-12">
-            <span class="text-[10px] font-mono tracking-[0.2em] uppercase text-hack">/// ADVANTAGES</span>
-            <h2 class="font-mono font-light text-2xl sm:text-3xl lg:text-4xl tracking-tighter mt-3 leading-[1.1] text-white">./features</h2>
-        </div>
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="panel rounded p-6 hover:border-hack/30 transition-colors">
-                <div class="w-10 h-10 border border-hack/30 rounded flex items-center justify-center mb-4"><span class="text-hack text-lg">✓</span></div>
-                <h3 class="font-mono font-semibold text-sm mb-2 text-white">// VERIFIED</h3>
-                <p class="text-xs text-hack/50 leading-relaxed">Strict verification process before listing.</p>
+    <section class="steps-section" id="how-it-works">
+        <div class="container">
+            <div style="text-align:center; margin-bottom:40px;">
+                <h2 style="font-size:24px; font-weight:700;">Cara Mendapatkan Produk</h2>
+                <p style="color:var(--text-muted); font-size:14px;">Proses pembelian sederhana, aman, dan cepat.</p>
             </div>
-            <div class="panel rounded p-6 hover:border-hack/30 transition-colors">
-                <div class="w-10 h-10 border border-hack/30 rounded flex items-center justify-center mb-4"><span class="text-hack text-lg">⚡</span></div>
-                <h3 class="font-mono font-semibold text-sm mb-2 text-white">// REAL_TIME</h3>
-                <p class="text-xs text-hack/50 leading-relaxed">Zero latency signals from TradingView.</p>
-            </div>
-            <div class="panel rounded p-6 hover:border-hack/30 transition-colors">
-                <div class="w-10 h-10 border border-hack/30 rounded flex items-center justify-center mb-4"><span class="text-hack text-lg">🔒</span></div>
-                <h3 class="font-mono font-semibold text-sm mb-2 text-white">// SECURE</h3>
-                <p class="text-xs text-hack/50 leading-relaxed">Encrypted access with exclusive licenses.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- STATISTICS -->
-<section id="stats" class="py-20 border-t border-hack/10 relative overflow-hidden">
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] bg-hack/5 rounded-full blur-[100px] pointer-events-none"></div>
-    <div class="max-w-screen-2xl mx-auto px-6 relative z-10">
-        <div class="text-center mb-12">
-            <span class="text-[10px] font-mono tracking-[0.2em] uppercase text-hack">/// ANALYTICS</span>
-            <h2 class="font-mono font-light text-2xl sm:text-3xl lg:text-4xl tracking-tighter mt-3 leading-[1.1] text-white">./platform_stats</h2>
-        </div>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div class="panel rounded p-5 text-center"><p class="font-mono font-light text-2xl lg:text-3xl tracking-tight text-hack counter" data-target="12847">0</p><p class="text-[10px] text-hack/40 mt-2 uppercase tracking-wider font-mono">USERS</p></div>
-            <div class="panel rounded p-5 text-center"><p class="font-mono font-light text-2xl lg:text-3xl tracking-tight text-hack counter" data-target="54">0</p><p class="text-[10px] text-hack/40 mt-2 uppercase tracking-wider font-mono">INDICATORS</p></div>
-            <div class="panel rounded p-5 text-center"><p class="font-mono font-light text-2xl lg:text-3xl tracking-tight text-hack counter" data-target="3421">0</p><p class="text-[10px] text-hack/40 mt-2 uppercase tracking-wider font-mono">TRANSACTIONS</p></div>
-            <div class="panel rounded p-5 text-center"><p class="font-mono font-light text-2xl lg:text-3xl tracking-tight text-hack counter" data-target="89">0</p><p class="text-[10px] text-hack/40 mt-2 uppercase tracking-wider font-mono">WIN_RATE%</p></div>
-        </div>
-    </div>
-</section>
-
-<!-- FOOTER -->
-<footer class="border-t border-hack/10 py-8">
-    <div class="max-w-screen-2xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <p class="text-[10px] text-hack/30 font-mono">&copy; 2026 NEXUO_SYSTEMS // ALL_RIGHTS_RESERVED</p>
-    </div>
-</footer>
-
-<!-- PURCHASE MODAL -->
-<div id="purchase-modal" class="fixed inset-0 z-[100] hidden items-center justify-center" style="background: rgba(0,0,0,0.9); backdrop-filter: blur(4px);">
-    <div class="panel rounded-lg p-6 w-full max-w-md mx-4 relative max-h-[90vh] overflow-y-auto">
-        <button onclick="closeModal('purchase-modal')" class="absolute top-4 right-4 text-hack/40 hover:text-hack transition-colors font-mono">&gt;_CLOSE</button>
-        <h3 class="font-mono font-semibold text-lg mb-1 text-white" id="purchase-item-name">—</h3>
-        <p class="text-[10px] text-hack/40 mb-5 font-mono">/// PAYMENT_VIA_QRIS</p>
-
-        <div id="step1" class="step-form active">
-            <div class="space-y-4">
-                <div><label class="text-[10px] text-hack/40 mb-1.5 block font-mono">EMAIL_ADDRESS</label><input type="email" id="purchase-email" class="w-full bg-black border border-hack/20 rounded px-3 py-2.5 text-sm text-white placeholder-hack/20 font-mono" placeholder="trader@nexuo.io"></div>
-                <div><label class="text-[10px] text-hack/40 mb-1.5 block font-mono">WHATSAPP_NUMBER</label><input type="tel" id="purchase-phone" class="w-full bg-black border border-hack/20 rounded px-3 py-2.5 text-sm text-white placeholder-hack/20 font-mono" placeholder="08123456789"></div>
-                <button onclick="processToPayment()" class="w-full bg-hack text-black text-xs font-mono font-medium tracking-wider uppercase py-3 rounded hover:bg-hack/90 transition-colors">./PROCEED</button>
-            </div>
-        </div>
-
-        <div id="step2" class="step-form">
-            <div class="text-center mb-4">
-                <p class="text-[10px] text-hack/40 uppercase tracking-wider font-mono">AMOUNT_REQUIRED:</p>
-                <p class="font-mono font-semibold text-xl text-hack mt-1" id="purchase-total-amount">Rp 0</p>
-                <p class="text-[10px] text-red-400/60 mt-1 font-mono">*PAY_EXACT_AMOUNT</p>
-            </div>
-            <div class="bg-black border border-hack/20 rounded p-4 text-center mb-4">
-                <p class="text-[10px] font-semibold text-hack mb-2 font-mono">/// SCAN_QRIS</p>
-                <img id="qris-image" src="" class="w-40 h-40 mx-auto hidden" alt="QRIS">
-                <div id="qris-loader" class="w-40 h-40 mx-auto bg-hack/5 border border-hack/10 rounded flex items-center justify-center text-hack/30 text-xs font-mono">GENERATING...</div>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] text-hack/40 mb-1.5 block font-mono">UPLOAD_PROOF</label>
-                    <div class="border border-dashed border-hack/20 rounded p-3 text-center cursor-pointer hover:border-hack/40 transition-colors" onclick="document.getElementById('proof-input').click()">
-                        <span id="file-name-display" class="text-xs text-hack/40 font-mono">/// CLICK_TO_UPLOAD</span>
-                        <input type="file" id="proof-input" accept="image/*" class="hidden" onchange="handleFileSelect(this)">
-                    </div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-num">1</div>
+                    <h4>Pilih Algoritma</h4>
+                    <p>Pilih robot yang sesuai dengan gaya trading Anda (Scalping, Swing, atau Long Term).</p>
                 </div>
-                <button id="submit-order-btn" onclick="submitOrder()" disabled class="w-full bg-hack/50 text-black text-xs font-mono font-medium tracking-wider uppercase py-3 rounded cursor-not-allowed transition-colors">./CONFIRM</button>
+                <div class="step-card">
+                    <div class="step-num">2</div>
+                    <h4>Scan & Bayar</h4>
+                    <p>Lakukan pembayaran via QRIS/Transfer sesuai harga yang tertera. Proses instan.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">3</div>
+                    <h4>Upload Bukti</h4>
+                    <p>Kirim screenshot bukti transfer di form pembelian. Tim kami akan verifikasi otomatis.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">4</div>
+                    <h4>Terima Email</h4>
+                    <p>Link download & Panduan Instalasi (PDF+Video) dikirim ke email Anda dalam hitungan menit.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container" id="products">
+        <div style="display:flex; justify-content:space-between; align-items:end; margin-bottom:24px; border-bottom:1px solid var(--border-subtle); padding-bottom:16px;">
+            <div>
+                <h2 style="font-size:24px; font-weight:700;">Katalog Algoritma</h2>
+                <p style="color:var(--text-muted); font-size:14px;">Siap pakai untuk MT5 & TradingView. Cocok untuk pemula.</p>
+            </div>
+        </div>
+        
+        <div class="grid" id="productGrid">
+            <div class="card" style="grid-column: 1/-1; text-align:center; padding: 60px; color: var(--text-muted);">
+                Memuat produk...
+            </div>
+        </div>
+    </div>
+
+    <section class="faq-section" id="faq">
+        <div class="container" style="max-width:800px;">
+            <h2 style="font-size:24px; font-weight:700; text-align:center; margin-bottom:40px;">Pertanyaan Umum (FAQ)</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">Apakah ini aman? <span>+</span></div>
+                <div class="faq-answer">Ya. NEXUO menggunakan parameter manajemen risiko ketat (Stop Loss wajib). Kami tidak menjamin profit, tapi kami meminimalisir kerugian besar dengan sistem proteksi modal.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">Berapa modal minimal? <span>+</span></div>
+                <div class="faq-answer">Tergantung produk. Namun secara umum, minimal $100 (akun Cent/Standard) sudah cukup untuk memulai agar manajemen risiko berjalan efektif.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">Saya gaptek, bisa install sendiri? <span>+</span></div>
+                <div class="faq-answer">Tentu bisa. Setelah pembelian, Anda akan mendapatkan file PDF dan Video tutorial langkah-demi-langkah. Prosesnya mirip menginstall aplikasi biasa.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">Broker apa yang support? <span>+</span></div>
+                <div class="faq-answer">Produk kami kompatibel dengan broker MT5 universal dan akun TradingView (Gratis/Berbayar).</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ================= LOGIN MODAL ================= -->
+<div class="modal-overlay" id="loginModal">
+    <div class="modal" style="max-width:400px; text-align:center;">
+        <button class="close-modal" onclick="closeModal('loginModal')">&times;</button>
+        <h2 style="margin-bottom:8px;">Staff Access</h2>
+        <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">Area Terbatas</p>
+        <form onsubmit="handleLogin(event)">
+            <div class="input-group">
+                <input type="password" id="adminPass" class="input-field" placeholder="Password" required>
+            </div>
+            <button type="submit" class="btn btn-white" style="width:100%">Masuk Dashboard</button>
+        </form>
+    </div>
+</div>
+
+<!-- ================= ADMIN VIEW ================= -->
+<div class="admin-view" id="adminView">
+    <header id="adminNavbar" class="scrolled">
+        <div class="logo" onclick="showStorefront()">
+            <div class="logo-box"></div> NEXUO <span style="font-size:12px; font-weight:400; color:var(--text-muted); margin-left:10px;">// STAFF_DASHBOARD</span>
+        </div>
+        <button class="btn btn-sm btn-ghost" onclick="showStorefront()">← Kembali ke Website</button>
+    </header>
+
+    <div class="container">
+        <div class="admin-header">
+            <div>
+                <h1 style="font-size:28px; margin-bottom:4px;">Manajemen Pesanan</h1>
+                <p style="color:var(--text-muted); font-size:14px;">Verifikasi bukti pembayaran dan kirim lisensi otomatis.</p>
+            </div>
+            <button class="btn btn-sm btn-ghost" onclick="loadOrders()">Refresh Data ↻</button>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">Total Orders</div>
+                <div class="stat-value" id="statTotal">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Perlu Verifikasi</div>
+                <div class="stat-value" style="color:#fbbf24" id="statPending">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Terkirim</div>
+                <div class="stat-value" style="color:var(--green)" id="statApproved">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Ditolak</div>
+                <div class="stat-value" style="color:var(--red)" id="statRejected">0</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Product</th>
+                        <th>Email Pembeli</th>
+                        <th>Bukti</th>
+                        <th>Status</th>
+                        <th style="text-align:right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                </tbody>
+            </table>
+            <div id="emptyState" style="padding:40px; text-align:center; display:none;">
+                <p style="color:var(--text-muted);">Belum ada pesanan masuk.</p>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ================= PURCHASE MODAL ================= -->
+<div class="modal-overlay" id="purchaseModal">
+    <div class="modal">
+        <button class="close-modal" onclick="closeModal('purchaseModal')">&times;</button>
+        <h2 style="font-size:20px; margin-bottom:8px;" id="modalProductName">Product Name</h2>
+        <div class="mono" style="color:var(--text-secondary); font-size:14px; margin-bottom:24px;">Total: <span id="modalProductPrice" style="color:var(--text-primary); font-weight:700;">Rp 0</span></div>
+
+        <div class="qr-section" id="qrSection" style="display:none;">
+            <img id="qrImage" src="" alt="QR Payment">
+            <div style="color:#000; font-weight:600; font-size:13px;">Scan QRIS Berikut</div>
+            <div class="qr-note">Pembayaran via QRIS<br>a.n NEXUO SYSTEMS</div>
+        </div>
+
+        <form onsubmit="submitOrder(event)">
+            <input type="hidden" id="productId">
+            <input type="hidden" id="productPrice">
+
+            <div class="input-group">
+                <label>Email Anda (Link download dikirim kesini)</label>
+                <input type="email" id="buyerEmail" placeholder="nama@email.com" required>
+            </div>
+            
+            <div class="input-group">
+                <label>No. WhatsApp</label>
+                <input type="tel" id="buyerPhone" placeholder="08123456789" required>
+            </div>
+
+            <div class="input-group">
+                <label>Upload Bukti Transfer</label>
+                <div class="file-upload" onclick="document.getElementById('proofInput').click()" id="dropZone">
+                    <span id="fileNameDisplay">Klik untuk upload screenshot bukti bayar</span>
+                    <input type="file" id="proofInput" accept="image/*" style="display:none" onchange="handleFileSelect(this)">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-green" style="width:100%" id="submitBtn">Konfirmasi Pembayaran</button>
+        </form>
+    </div>
+</div>
+
+<!-- ================= TOAST ================= -->
+<div class="toast" id="toast">
+    <div class="toast-icon" id="toastIcon">✓</div>
+    <div id="toastMessage">Operation successful</div>
+</div>
+
+<!-- ================= JAVASCRIPT ================= -->
 <script>
     const API_BASE = window.location.origin;
-    let currentProduct = null, currentOrder = null, selectedProofData = null;
+    const ADMIN_PASSWORD = 'nexuo2026';
+    let currentOrder = null;
+    let selectedProofData = null;
 
+    // ===== PRODUCTS FROM SUPABASE =====
     async function loadProducts() {
-        const res = await fetch(`${API_BASE}/api/products`); const products = await res.json();
-        const grid = document.getElementById('indicator-grid');
-        grid.innerHTML = products.map(p => {
-            const priceNum = parseInt(p.price) || 0;
-            const displayPrice = priceNum >= 1000 ? `${priceNum/1000}K` : `$${priceNum}`;
-            const category = p.category || 'INDICATOR';
-            
-            return `
-            <div class="panel rounded overflow-hidden group hover:border-hack/30 transition-all">
-                <div class="h-36 bg-gradient-to-br from-black to-hack/5 relative flex items-center justify-center overflow-hidden">
-                    <div class="absolute inset-0 bg-hack/[0.02] group-hover:bg-hack/[0.05] transition-colors"></div>
-                    <span class="text-hack/20 text-5xl font-mono font-bold relative z-10">∑</span>
-                    <div class="absolute top-3 right-3 bg-hack/10 text-[9px] font-mono font-semibold tracking-wider uppercase px-2 py-0.5 rounded text-hack">${category}</div>
-                </div>
-                <div class="p-4">
-                    <div class="flex items-start justify-between mb-2"><h3 class="font-mono font-semibold text-sm text-white">${p.name}</h3><span class="font-mono font-semibold text-hack text-sm">${priceNum.toLocaleString('id-ID')}</span></div>
-                    <p class="text-[10px] text-hack/40 leading-relaxed mb-3 font-mono">${p.description || ''}</p>
-                    <div class="flex items-center justify-between pt-3 border-t border-dashed border-hack/10">
-                        <span class="flex items-center gap-1 text-[10px] text-hack/40 font-mono"><span class="text-yellow-400">★</span>4.9</span>
-                        <button onclick="openPurchase(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${priceNum})" class="text-[10px] font-mono font-semibold tracking-wider uppercase bg-hack/10 text-hack border border-hack/20 px-3 py-1.5 rounded hover:bg-hack/20 transition-colors">BUY</button>
-                    </div>
-                </div>
-            </div>
-        `}).join('');
-        lucide.createIcons();
-    }
-
-    function closeModal(id) { const m = document.getElementById(id); m.classList.add('hidden'); m.classList.remove('flex'); }
-    
-    function openPurchase(id, name, price) {
-        currentProduct = { id, name, price };
-        document.getElementById('purchase-item-name').textContent = name;
-        document.getElementById('step1').classList.add('active'); document.getElementById('step2').classList.remove('active');
-        document.getElementById('purchase-email').value = ''; document.getElementById('purchase-phone').value = '';
-        document.getElementById('proof-input').value = ''; document.getElementById('file-name-display').textContent = '/// CLICK_TO_UPLOAD';
-        const btn = document.getElementById('submit-order-btn'); btn.disabled = true; btn.classList.add('bg-hack/50','cursor-not-allowed'); btn.classList.remove('bg-hack','hover:bg-hack/90');
-        const m = document.getElementById('purchase-modal'); m.classList.remove('hidden'); m.classList.add('flex');
-    }
-
-    async function processToPayment() {
-        const email = document.getElementById('purchase-email').value, phone = document.getElementById('purchase-phone').value;
-        if(!email || !phone) { showToast('/// ERROR: Fill all fields', 'error'); return; }
-        const orderId = 'ORD-' + Date.now();
-        document.getElementById('qris-loader').style.display = 'flex'; document.getElementById('qris-image').classList.add('hidden');
         try {
-            const res = await fetch(`${API_BASE}/api/orders`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ order_id: orderId, product_name: currentProduct.name, price: currentProduct.price, email, phone }) });
-            const data = await res.json(); currentOrder = data.order;
-            document.getElementById('purchase-total-amount').textContent = 'Rp ' + data.totalAmount.toLocaleString('id-ID');
-            document.getElementById('qris-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.qris_string)}`;
-            document.getElementById('qris-image').onload = () => { document.getElementById('qris-loader').style.display = 'none'; document.getElementById('qris-image').classList.remove('hidden'); };
-            document.getElementById('step1').classList.remove('active'); document.getElementById('step2').classList.add('active');
-        } catch (e) { showToast('/// ERROR: Order failed', 'error'); }
-    }
-
-    function handleFileSelect(input) {
-        if (input.files[0]) {
-            document.getElementById('file-name-display').textContent = input.files[0].name;
-            const btn = document.getElementById('submit-order-btn'); btn.disabled = false; btn.classList.remove('bg-hack/50','cursor-not-allowed'); btn.classList.add('bg-hack','hover:bg-hack/90');
-            const reader = new FileReader(); reader.onload = e => selectedProofData = e.target.result; reader.readAsDataURL(input.files[0]);
+            const res = await fetch(`${API_BASE}/api/products`);
+            if (!res.ok) throw new Error('Failed to fetch products');
+            const products = await res.json();
+            const grid = document.getElementById('productGrid');
+            
+            if (products.length === 0) {
+                grid.innerHTML = '<div class="card" style="grid-column: 1/-1; text-align:center; padding: 60px; color: var(--text-muted);">Belum ada produk tersedia.</div>';
+                return;
+            }
+            
+            grid.innerHTML = products.map(p => {
+                const priceNum = parseInt(p.price) || 0;
+                const category = p.category || 'Indicator';
+                const features = p.features ? p.features.split(',').map(f => f.trim()) : [];
+                
+                return `
+                <div class="card">
+                    <div class="card-header">
+                        <span class="tag">${category}</span>
+                        <span class="price">${priceNum >= 1000 ? 'Rp ' + priceNum.toLocaleString('id-ID') : '$' + priceNum}</span>
+                    </div>
+                    <h3>${p.name}</h3>
+                    <p>${p.description || 'Produk indikator premium untuk TradingView.'}</p>
+                    <div class="feature-list">
+                        ${features.slice(0, 3).map(f => `<span class="feature">${f}</span>`).join('')}
+                    </div>
+                    <button class="btn btn-ghost" style="width:100%" onclick="openPurchase(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${priceNum})">Beli Sekarang</button>
+                </div>
+                `;
+            }).join('');
+        } catch (err) {
+            console.error('Error loading products:', err);
+            document.getElementById('productGrid').innerHTML = '<div class="card" style="grid-column: 1/-1; text-align:center; padding: 60px; color: var(--red);">Gagal memuat produk.</div>';
         }
     }
 
-    async function submitOrder() {
-        if (!selectedProofData || !currentOrder) return;
-        const btn = document.getElementById('submit-order-btn'); btn.disabled = true; btn.innerHTML = '/// SAVING...';
+    // ===== ORDERS FROM SUPABASE =====
+    async function loadOrders() {
         try {
-            await fetch(`${API_BASE}/api/orders`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ order_id: currentOrder.order_id, proof: selectedProofData }) });
-            closeModal('purchase-modal'); showToast('/// SUCCESS: Proof sent. Waiting for admin.', 'success');
-        } catch (e) { showToast('/// ERROR: Upload failed', 'error'); }
+            const res = await fetch(`${API_BASE}/api/orders`);
+            if (!res.ok) throw new Error('Failed to fetch orders');
+            const orders = await res.json();
+            
+            document.getElementById('statTotal').textContent = orders.length;
+            document.getElementById('statPending').textContent = orders.filter(o => o.status === 'pending').length;
+            document.getElementById('statApproved').textContent = orders.filter(o => o.status === 'approved').length;
+            document.getElementById('statRejected').textContent = orders.filter(o => o.status === 'rejected').length;
+
+            const tbody = document.getElementById('ordersTableBody');
+            const emptyState = document.getElementById('emptyState');
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            tbody.innerHTML = orders.map(o => {
+                let statusBadge = o.status === 'pending' ? '<span class="status-pill status-pending">Pending</span>' : 
+                                  o.status === 'approved' ? '<span class="status-pill status-approved">Terkirim</span>' : 
+                                  '<span class="status-pill status-rejected">Ditolak</span>';
+
+                let actions = '';
+                if (o.status === 'pending') {
+                    actions = `
+                        <button class="btn btn-sm btn-green" onclick="approveOrder('${o.order_id}', '${o.email}', '${o.product_name}')">✓ Valid</button>
+                        <button class="btn btn-sm btn-red" style="margin-left:8px;" onclick="rejectOrder('${o.order_id}')">✕ Invalid</button>
+                    `;
+                } else {
+                    actions = '<span style="color:var(--text-muted); font-size:12px;">Selesai</span>';
+                }
+
+                return `
+                    <tr>
+                        <td class="mono" style="color:var(--text-secondary); font-size:12px;">${o.order_id}</td>
+                        <td style="font-weight:600;">${o.product_name}</td>
+                        <td style="color:var(--text-secondary);">${o.email}</td>
+                        <td>${o.proof ? `<a href="#" onclick="viewProof('${o.proof}')" style="color:var(--blue); text-decoration:underline; font-size:12px;">Lihat Bukti</a>` : '-'}</td>
+                        <td>${statusBadge}</td>
+                        <td style="text-align:right;">${actions}</td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (err) {
+            console.error('Error loading orders:', err);
+            showToast('Gagal memuat pesanan', 'error');
+        }
     }
 
-    function showToast(msg, type='success') {
-        const container = document.getElementById('toast-container'); const toast = document.createElement('div');
-        const colors = { success: 'border-hack/30 bg-hack/10', error: 'border-red-500/30 bg-red-500/10' };
-        toast.className = `toast panel rounded px-4 py-3 flex items-center gap-3 min-w-[280px] border ${colors[type]}`;
-        toast.innerHTML = `<p class="text-xs font-mono ${type === 'error' ? 'text-red-400' : 'text-hack'} flex-1">${msg}</p>`;
-        container.appendChild(toast);
-        requestAnimationFrame(() => toast.classList.add('show'));
-        setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
+    async function approveOrder(orderId, email, productName) {
+        if(confirm(`Setuju pesanan ${orderId}? Produk akan dikirim ke ${email}.`)) {
+            try {
+                await fetch(`${API_BASE}/api/orders`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ order_id: orderId, status: 'approved' })
+                });
+                showToast('Approved! Email dikirim ke ' + email, 'success');
+                loadOrders();
+            } catch (err) {
+                showToast('Gagal approve pesanan', 'error');
+            }
+        }
     }
 
-    function animateCounters() {
-        document.querySelectorAll('.counter').forEach(el => {
-            const target = parseInt(el.dataset.target); const duration = 2000; const start = performance.now();
-            function update(now) { const elapsed = now - start; const progress = Math.min(elapsed / duration, 1); el.textContent = Math.round(target * (1 - Math.pow(1 - progress, 3))).toLocaleString(); if (progress < 1) requestAnimationFrame(update); }
-            requestAnimationFrame(update);
-        });
+    async function rejectOrder(orderId) {
+        if(confirm('Tolak pesanan ini?')) {
+            try {
+                await fetch(`${API_BASE}/api/orders`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ order_id: orderId, status: 'rejected' })
+                });
+                showToast('Order ditolak.', 'success');
+                loadOrders();
+            } catch (err) {
+                showToast('Gagal tolak pesanan', 'error');
+            }
+        }
     }
-    const observer = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) animateCounters(); }); }, { threshold: 0.2 });
-    
-    document.addEventListener('DOMContentLoaded', () => { loadProducts(); lucide.createIcons(); observer.observe(document.getElementById('stats')); });
+
+    function viewProof(proofUrl) {
+        const win = window.open();
+        win.document.write('<img src="' + proofUrl + '" style="max-width:100%; margin:auto; display:block; background:#000;"/>');
+    }
+
+    // ===== UI LOGIC =====
+    function toggleFaq(element) {
+        const item = element.parentElement;
+        item.classList.toggle('active');
+        element.querySelector('span').textContent = item.classList.contains('active') ? '-' : '+';
+    }
+
+    function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
+
+    function handleLogin(e) {
+        e.preventDefault();
+        const p = document.getElementById('adminPass').value;
+        if(p === ADMIN_PASSWORD) {
+            closeModal('loginModal');
+            document.getElementById('storefrontView').classList.add('hidden');
+            document.getElementById('adminView').classList.add('active');
+            loadOrders();
+            window.scrollTo(0,0);
+        } else {
+            showToast('Password salah', 'error');
+        }
+    }
+
+    function showStorefront() {
+        document.getElementById('adminView').classList.remove('active');
+        document.getElementById('storefrontView').classList.remove('hidden');
+        window.scrollTo(0,0);
+    }
+
+    // ===== PURCHASE =====
+    async function openPurchase(id, name, price) {
+        document.getElementById('modalProductName').textContent = name;
+        document.getElementById('modalProductPrice').textContent = 'Rp ' + parseInt(price).toLocaleString('id-ID');
+        document.getElementById('productId').value = id;
+        document.getElementById('productPrice').value = price;
+        document.getElementById('buyerEmail').value = '';
+        document.getElementById('buyerPhone').value = '';
+        document.getElementById('proofInput').value = '';
+        document.getElementById('fileNameDisplay').textContent = 'Klik untuk upload screenshot bukti bayar';
+        document.getElementById('qrSection').style.display = 'none';
+        document.getElementById('submitBtn').textContent = 'Konfirmasi Pembayaran';
+        document.getElementById('submitBtn').disabled = false;
+        
+        document.getElementById('purchaseModal').classList.add('active');
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+
+    let selectedFile = null;
+    function handleFileSelect(input) {
+        const file = input.files[0];
+        if (file) {
+            document.getElementById('fileNameDisplay').textContent = file.name;
+            selectedFile = file;
+        }
+    }
+
+    async function submitOrder(e) {
+        e.preventDefault();
+        
+        const productId = document.getElementById('productId').value;
+        const price = document.getElementById('productPrice').value;
+        const email = document.getElementById('buyerEmail').value;
+        const phone = document.getElementById('buyerPhone').value;
+        
+        if (!selectedFile) {
+            showToast('Harap upload bukti transfer!', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Memproses...';
+
+        try {
+            // Upload bukti ke base64
+            const reader = new FileReader();
+            const proofData = await new Promise((resolve) => {
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(selectedFile);
+            });
+
+            // Buat order
+            const orderId = 'ORD-' + Date.now();
+            const createRes = await fetch(`${API_BASE}/api/orders`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    order_id: orderId,
+                    product_name: document.getElementById('modalProductName').textContent,
+                    price: price,
+                    email: email,
+                    phone: phone
+                })
+            });
+            
+            const orderData = await createRes.json();
+            
+            if (orderData.order) {
+                // Upload bukti
+                await fetch(`${API_BASE}/api/orders`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        proof: proofData
+                    })
+                });
+                
+                closeModal('purchaseModal');
+                showToast('Pesanan terkirim! Tunggu verifikasi admin.', 'success');
+            } else {
+                throw new Error(orderData.error || 'Gagal membuat pesanan');
+            }
+        } catch (err) {
+            console.error('Error:', err);
+            showToast('Gagal mengirim pesanan: ' + err.message, 'error');
+        }
+        
+        btn.disabled = false;
+        btn.textContent = 'Konfirmasi Pembayaran';
+    }
+
+    function showToast(msg, type) {
+        const toast = document.getElementById('toast');
+        const icon = document.getElementById('toastIcon');
+        const message = document.getElementById('toastMessage');
+        
+        message.textContent = msg;
+        toast.className = 'toast show ' + type;
+        icon.textContent = type === 'success' ? '✓' : '✕';
+        
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('navbar');
+        if(window.scrollY > 50) nav.classList.add('scrolled');
+        else nav.classList.remove('scrolled');
+    });
+
+    // Canvas Particles
+    (function(){
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+        for(let i=0; i<40; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                r: Math.random() * 2,
+                d: Math.random() * 0.5
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.beginPath();
+            for(let i=0; i<particles.length; i++) {
+                let p = particles[i];
+                ctx.moveTo(p.x, p.y);
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2, true);
+            }
+            ctx.fill();
+            update();
+            requestAnimationFrame(draw);
+        }
+
+        function update() {
+            for(let i=0; i<particles.length; i++) {
+                particles[i].y -= particles[i].d;
+                if(particles[i].y < 0) particles[i].y = canvas.height;
+            }
+        }
+        draw();
+    })();
+
+    // Init
+    loadProducts();
 </script>
+
+<footer style="border-top:1px solid var(--border-subtle); padding:40px 0; margin-top:80px; text-align:center; color:var(--text-muted); font-size:12px;">
+    <div class="container">
+        <p>&copy; 2026 NEXUO Systems. All rights reserved.</p>
+        <div style="margin-top:10px;">
+            <a href="#" onclick="event.preventDefault(); openLoginModal()" style="opacity:0.3;">Staff Login</a>
+        </div>
+    </div>
+</footer>
+
 </body>
 </html>
