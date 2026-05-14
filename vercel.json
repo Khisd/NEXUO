@@ -1,5 +1,9 @@
 {
-  "framework": null,
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs"
+    }
+  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/admin", "destination": "/admin.html" },
